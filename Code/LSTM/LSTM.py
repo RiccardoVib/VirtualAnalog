@@ -18,8 +18,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     if encoder_units[-1] != decoder_units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
     dff_output = kwargs.get('dff_output', 128)
-    model_save_dir = kwargs.get('model_save_dir', '../../TrainedModels')
-    save_folder = kwargs.get('save_folder', 'Longformer_TESTING')
+    model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
+    save_folder = kwargs.get('save_folder', 'LSTM_TESTING')
     generate_wav = kwargs.get('generate_wav', None)
 
 
@@ -153,19 +153,18 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
 if __name__ == '__main__':
-    data_dir = '../../../Data/bach_multiinstrumental/bach_multiinstrumental/Training'
-    # data_dir = '/Users/riccardosimionato/Datasets/bach_multiinstrumental'
+    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
               ckpt_flag=True,
-              b_size=1,
+              b_size=28,
               learning_rate=0.0001,
               encoder_units=[4, 4],
               decoder_units=[4, 4],
               dff_output=512,
-              epochs=1,
+              epochs=2000,
               data=data,
               generate_wav=2)

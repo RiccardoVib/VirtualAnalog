@@ -27,7 +27,7 @@ def data_preparation(**kwargs):
         threshold = metadata[-1].replace('.wav', '')
         fs, audio_stereo = wavfile.read(file) #fs= 96,000 Hz
         inp = audio_stereo[:, 0].astype(np.float32)
-        tar = audio_stereo[:, 1].astype(np.float32)
+        tar = audio_stereo[1:, 1].astype(np.float32)
 
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
