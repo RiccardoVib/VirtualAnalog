@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.io import wavfile
+from scipy import signal
 import os
 import glob
 import pickle
@@ -11,26 +12,32 @@ def get_keys_from_value(d, val):
 
 def data_preparation(**kwargs):
     data_dir = '/Users/riccardosimionato/Datasets/VA'
-
+    factor = 3
     data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
     save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
-    L = 32097856#MAX=34435680
-    inp_collector, tar_collector = [],[]
+    L = 10699286 #32097856#MAX=34435680
+    inp_collector, tar_collector = [], []
     for file in file_dirs:
 
         filename = os.path.split(file)[-1]
         metadata = filename.split('_', 2)
         ratio = metadata[1]
         threshold = metadata[-1].replace('.wav', '')
-        fs, audio_stereo = wavfile.read(file)
+        fs, audio_stereo = wavfile.read(file) #fs= 96,000 Hz
         inp = audio_stereo[:, 0].astype(np.float32)
         tar = audio_stereo[:, 1].astype(np.float32)
+
+        inp = signal.resample_poly(inp, 1, factor)
+        tar = signal.resample_poly(tar, 1, factor)
 
         if len(inp) > L:
             inp = inp[0:L]
             tar = tar[0:L]
+
+        #if len(inp) < L:
+        #    L = len(inp)
 
         inp_collector.append(inp)
         tar_collector.append(tar)

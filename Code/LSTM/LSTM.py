@@ -11,7 +11,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
-    b_size = kwargs.get('b_size', 16)
+    b_size = kwargs.get('b_size', 28)
     learning_rate = kwargs.get('learning_rate', 0.001)
     encoder_units = kwargs.get('encoder_units', [8, 8])
     decoder_units = kwargs.get('decoder_units', [8, 8])
@@ -24,15 +24,15 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
     if data is None:
-        x, y, x_val, y_val, scaler, zero_value = get_data(data_dir, seed=seed)
+        x, y, x_val, y_val, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
     else:
         x, y, x_val, y_val, scaler, zero_value = data
 
     #T past values used to predict the next value
-    T = len(x)#//2 #time window
+    T = x.shape[1]#//2 #time window
     D = 1
 
-    encoder_inputs = Input(shape=(T, D), name='enc_input')
+    encoder_inputs = Input(shape=(T, D), batch_size=b_size, name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
@@ -45,7 +45,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     encoder_states = [state_h, state_c]
 
-    decoder_inputs = Input(shape=(T-1, D), name='dec_input')
+    decoder_inputs = Input(shape=(T-1, D), batch_size=b_size, name='dec_input')
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
@@ -85,8 +85,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             print("Initializing random weights.")
 
     #train the RNN
-    results = model.fit([x, y[:,:-1,:]], y[:,1:,:],batch_size=b_size, epochs=epochs,
-                  validation_data=([x_val, y_val[:,:-1,:]], y_val[:,1:,:]), callbacks=callbacks)
+    results = model.fit([x, y[:,:-1]], y[:,1:], batch_size=b_size, epochs=epochs,
+                  validation_data=([x_val, y_val[:,:-1]], y_val[:,1:]), callbacks=callbacks)
 
     #predictions_test = model.predict([X_test, Y_test[:,:-1,:]], batch_size=b_size) #
 
@@ -161,11 +161,11 @@ if __name__ == '__main__':
               model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
               ckpt_flag=True,
-              b_size=3,
+              b_size=1,
               learning_rate=0.0001,
-              encoder_units=[64, 64],
-              decoder_units=[64, 64],
+              encoder_units=[4, 4],
+              decoder_units=[4, 4],
               dff_output=512,
-              epochs=10,
+              epochs=1,
               data=data,
               generate_wav=2)

@@ -5,7 +5,7 @@ import tensorflow as tf
 import numpy as np
 from Code.Preprocess import my_scaler
 
-def get_data(data_dir, seed=422):
+def get_data(data_dir, batch_size=28, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -27,22 +27,28 @@ def get_data(data_dir, seed=422):
     inp = np.array(inp, dtype=np.float32)
     tar = np.array(tar, dtype=np.float32)
 
-    scaler = my_scaler()
-    scaler.fit(inp)
-    scaler.fit(tar)
-    inp = scaler.transform(Z)
-    tar = scaler.transform(Z)
-    zero_value = (0 - scaler.min_data)/(scaler.max_data - scaler.min_data)
+    scaler_inp = my_scaler()
 
+    scaler_tar = my_scaler()
+    scaler_inp.fit(inp)
+    scaler_tar.fit(tar)
+    inp = scaler_inp.transform(inp)
+    tar = scaler_tar.transform(tar)
+    zero_value_inp = (0 - scaler_inp.min_data)/(scaler_inp.max_data - scaler_inp.min_data)
+    zero_value_tar = (0 - scaler_tar.min_data) / (scaler_tar.max_data - scaler_tar.min_data)
+    zero_value = [zero_value_inp, zero_value_tar]
+    scaler = [scaler_inp, scaler_tar]
     # -----------------------------------------------------------------------------------------------------------------
     # Shuffle indexing matrix and and split into test, train validation
     # -----------------------------------------------------------------------------------------------------------------
-    N = len(inp[0])
+    N = len(inp[0]) #32097856
     n_t = N//100*70
-    x, y, x_val, y_val = [],[],[],[]
+    x, y, x_val, y_val = [], [], [], []
+    inp = inp[0:batch_size, :]
+    tar = tar[0:batch_size, :]
     for i in inp:
         x.append(i[0:n_t])
-        x_val.append(i[n_t+1::])
+        x_val.append(i[n_t + 1::])
     for t in tar:
         y.append(t[0:n_t])
         y_val.append(t[n_t + 1::])
