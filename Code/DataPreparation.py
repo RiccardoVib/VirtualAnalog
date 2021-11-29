@@ -17,7 +17,7 @@ def data_preparation(**kwargs):
     save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
-    L = 10699286 #32097856#MAX=34435680
+    L = 10699286-100 #32097856#MAX=34435680
     inp_collector, tar_collector = [], []
     for file in file_dirs:
 
@@ -32,7 +32,7 @@ def data_preparation(**kwargs):
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
 
-        if len(inp) > L:
+        if len(tar) > L:
             inp = inp[0:L]
             tar = tar[0:L]
 

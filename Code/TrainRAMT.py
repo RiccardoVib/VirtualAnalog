@@ -2,11 +2,10 @@ from Code.GetData import get_data
 import os
 import tensorflow as tf
 import numpy as np
-#import pandas as pd
 import pickle
 from scipy.io import wavfile
 from scipy import signal
-from Code.Models import Transformer, Longformer
+from Code.Models import Transformer
 from Code.TrainFunctionality import CustomSchedule, get_batches, PlotLossesSame
 from tensorflow.keras.utils import Progbar
 import matplotlib.pyplot as plt
@@ -78,8 +77,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     @tf.function
     def train_step(inp, tar):
-        tar_inp = tar[:, :-1, :]
-        tar_real = tar[:, 1:, :]
+        tar_inp = tar[:-1]
+        tar_real = tar[1:]
 
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
@@ -93,8 +92,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     @tf.function
     def val_step(inp, tar, testing=False):
-        tar_inp = tar[:, :-1, :]
-        tar_real = tar[:, 1:, :]
+        tar_inp = tar[:-1]
+        tar_real = tar[1:]
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
@@ -113,13 +112,13 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     if ckpt_flag:
         Z_shape = tf.shape(x)
         graph_signature = [
-            tf.TensorSpec((None, Z_shape[1], Z_shape[2]), tf.float32),
-            tf.TensorSpec((None, Z_shape[1], Z_shape[2]), tf.float32)
+            tf.TensorSpec((None, Z_shape[1]), tf.float32),
+            tf.TensorSpec((None, Z_shape[1]), tf.float32)
         ]
 
         @tf.function(input_signature=graph_signature)
         def inference(tar, inp):
-            tar_inp = tar[:, :-1, :]
+            tar_inp = tar[:-1]
 
             outputs = transformer([inp, tar_inp], training=False)
             return outputs
@@ -138,7 +137,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
             # Need to make a single prediction for the model as it needs to compile:
             transformer([tf.costant(x[:2], dtype='float32'),
-                         tf.constant(y[:2][:, :-1, :], dtype='float32')],
+                         tf.constant(y[:2,:-1], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -177,9 +176,9 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         print("\nepoch {}/{}".format(epoch + 1, epochs))
         pb_i = Progbar(n_batch * b_size, stateful_metrics=['Loss: '])
 
-        for (batch_num, (x_batch_i, y_batch_i)) in enumerate(zip(x_batches, y_batches)):
-            x_batch = x_batches[x_batch_i]
-            y_batch = y_batches[y_batch_i]
+        for batch_num in range(x_batches.shape[0]):
+            x_batch = x_batches[batch_num]
+            y_batch = y_batches[batch_num]
 
             x_batch = tf.constant(x_batch, dtype='float32')
             y_batch = tf.constant(y_batch, dtype='float32')
@@ -198,9 +197,9 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # Get batches
         #x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
         x_batches, y_batches = x_val, y_val
-        for (batch_num, (x_batch_i, y_batch_i)) in enumerate(zip(x_batches, y_batches)):
-            x_batch = x_batches[x_batch_i]
-            y_batch = y_batches[y_batch_i]
+        for batch_num in range(x_batches.shape[0]):
+            x_batch = x_batches[batch_num]
+            y_batch = y_batches[batch_num]
 
             x_batch = tf.constant(x_batch, dtype='float32')
             y_batch = tf.constant(y_batch, dtype='float32')
