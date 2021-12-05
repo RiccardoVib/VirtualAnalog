@@ -10,7 +10,8 @@ def get_data(data_dir, batch_size=28, seed=422):
     tf.random.set_seed(seed)
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
-    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
@@ -28,7 +29,6 @@ def get_data(data_dir, batch_size=28, seed=422):
     tar = np.array(tar, dtype=np.float32)
 
     scaler_inp = my_scaler()
-
     scaler_tar = my_scaler()
     scaler_inp.fit(inp)
     scaler_tar.fit(tar)
@@ -42,19 +42,25 @@ def get_data(data_dir, batch_size=28, seed=422):
     # Shuffle indexing matrix and and split into test, train validation
     # -----------------------------------------------------------------------------------------------------------------
     N = len(inp[0]) #32097856
-    n_t = N//100*70
+    #n_t = N//100*70
+    n_t = 100
     x, y, x_val, y_val = [], [], [], []
+    #batch_size = 1
     inp = inp[0:batch_size, :]
     tar = tar[0:batch_size, :]
     for i in inp:
         x.append(i[0:n_t])
-        x_val.append(i[n_t + 1::])
+        #x_val.append(i[n_t + 1::])
+        x_val.append(i[n_t + 1:200])
     for t in tar:
         y.append(t[0:n_t])
-        y_val.append(t[n_t + 1::])
+        #y_val.append(t[n_t + 1::])
+        y_val.append(t[n_t + 1:200])
 
     x = np.array(x)
+    #x = np.reshape(x, [50*2, -1])
     y = np.array(y)
+    #y = np.reshape(x, [50*2, -1])
     x_val = np.array(x_val)
     y_val = np.array(y_val)
 

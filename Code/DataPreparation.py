@@ -4,21 +4,25 @@ from scipy import signal
 import os
 import glob
 import pickle
-import matplotlib.pyplot as plt
-import wave
+#import matplotlib.pyplot as plt
+#import wave
 
 def get_keys_from_value(d, val):
     return [k for k, v in d.items() if v == val]
 
 def data_preparation(**kwargs):
-    data_dir = '/Users/riccardosimionato/Datasets/VA'
-    factor = 3
-    data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
-    save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
+    #data_dir = '/Users/riccardosimionato/Datasets/VA'
+    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
+    save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    factor = 6#3
+    #data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
+    #save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
-    L = 10699286-100 #32097856#MAX=34435680
+    L = 5349643-100#10699286-100 #32097856#MAX=34435680
     inp_collector, tar_collector = [], []
+    ratio, threshold = '', ''
+    fs = 0
     for file in file_dirs:
 
         filename = os.path.split(file)[-1]

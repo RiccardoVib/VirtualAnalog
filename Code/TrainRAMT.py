@@ -77,13 +77,13 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     @tf.function
     def train_step(inp, tar):
-        tar_inp = tar[:-1]
-        tar_real = tar[1:]
+        tar_inp = tar[:, :-1]
+        tar_real = tar[:, 1:]
 
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
 
-            loss = loss_fn(tar_real, predictions)
+            loss = loss_fn(tar_real, predictions[:, :, 0]) #TODO: dimensioni sbagliate
 
         gradients = tape.gradient(loss, transformer.trainable_variables)
         opt.apply_gradients(zip(gradients, transformer.trainable_variables))
@@ -92,8 +92,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     @tf.function
     def val_step(inp, tar, testing=False):
-        tar_inp = tar[:-1]
-        tar_real = tar[1:]
+        tar_inp = tar[:, :-1]
+        tar_real = tar[:, 1:]
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
@@ -168,15 +168,15 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         val_loss.reset_states()
 
         # Get batches
-        #x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
-        x_batches = x
-        y_batches = y
+        x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
+        #x_batches = x
+        #y_batches = y
         # Set-up training progress bar
         n_batch = len(x_batches)
         print("\nepoch {}/{}".format(epoch + 1, epochs))
         pb_i = Progbar(n_batch * b_size, stateful_metrics=['Loss: '])
 
-        for batch_num in range(x_batches.shape[0]):
+        for batch_num in range(len(x_batches)):#.shape[0]):
             x_batch = x_batches[batch_num]
             y_batch = y_batches[batch_num]
 
@@ -195,9 +195,10 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # -------------------------------------------------------------------------------------------------------------
 
         # Get batches
-        #x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
-        x_batches, y_batches = x_val, y_val
-        for batch_num in range(x_batches.shape[0]):
+        x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
+        #x_batches, y_batches = x_val, y_val
+        #for batch_num in range(x_batches.shape[0]):
+        for batch_num in range(len(x_batches)):
             x_batch = x_batches[batch_num]
             y_batch = y_batches[batch_num]
 
@@ -435,13 +436,13 @@ if __name__ == '__main__':
         save_folder='Transformer_TESTING',
         ckpt_flag=True,
         plot_progress=True,
-        b_size=16,
+        b_size=1,
         num_layers=2,
         d_model=32,
         dff=32,
         num_heads=2,
         drop=0.1,
-        epochs=55,
+        epochs=1,
         seed=422,
         generate_wav=10)
 

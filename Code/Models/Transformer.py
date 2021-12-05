@@ -180,7 +180,7 @@ class Encoder(tf.keras.layers.Layer):
         seq_len = tf.shape(x)[1]
 
         # adding embedding and position encoding.
-        # x = tf.expand_dims(x, -1)
+        x = tf.expand_dims(x, -1)
         x = self.embedding(x)  # (batch_size, input_seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))    # TODO find out what this is doing
         x += self.pos_encoding[:, :seq_len, :]
@@ -192,7 +192,7 @@ class Encoder(tf.keras.layers.Layer):
 
         return x  # (batch_size, input_seq_len, d_model)
 
-
+#@tf.autograph.experimental.do_not_convert
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, num_layers, d_model, num_heads, dff, target_vocab_size,
                  maximum_position_encoding, rate=0.1):
@@ -213,7 +213,7 @@ class Decoder(tf.keras.layers.Layer):
         seq_len = tf.shape(x)[1]
         attention_weights = {}      # (batch_size, target_seq_len, 1) --> (
 
-        # x = tf.expand_dims(x, -1)
+        x = tf.expand_dims(x, -1)
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
         x += self.pos_encoding[:, :seq_len, :]
