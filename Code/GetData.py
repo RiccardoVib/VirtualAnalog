@@ -68,13 +68,13 @@ def get_data(data_dir, batch_size=28, seed=422):
     #     y_test.append(tar[t, n_train+n_val:])
     #
     # 100 ms = 0.1*fs
-    window = int(fs * 0.2)
+    window = int(fs * 0.1)
     all_inp, all_tar = [], []
+    batch_size = 1
     for i in range(batch_size):
-        for t in range(inp.shape[1]-window):
-        #for t in range(10):
-            all_inp.append(inp[i, t:t + window])
-            all_tar.append(tar[i, t:t + window])
+        for t in range(inp.shape[1]//window):
+            all_inp.append(inp[i, t*window:t*window + window])
+            all_tar.append(tar[i, t*window:t*window + window])
             r.append(ratios[i])
 
     all_inp = np.array(all_inp)
@@ -96,36 +96,3 @@ def get_data(data_dir, batch_size=28, seed=422):
     r_test = r[n_train+n_val:]
 
     return x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value
-
-
-    # n_row_train = int(n_train/window)
-    # new_N_train = int(n_row_train*window)
-    #
-    # n_row_val = int(n_val/window)
-    # new_N_val = int(n_row_val * window)
-    #
-    # x = np.array(x)
-    # x = x[:, :new_N_train]
-    # x = np.reshape(x, [batch_size,n_row_train, window])
-    #
-    # y = np.array(y)
-    # y = y[:, :new_N_train]
-    # y = np.reshape(y, [batch_size,n_row_train, window])
-    #
-    # x_val = np.array(x_val)
-    # x_val = x_val[:, :new_N_val]
-    # x_val = np.reshape(x_val, [batch_size,n_row_val, window])
-    #
-    # y_val = np.array(y_val)
-    # y_val = y_val[:, :new_N_val]
-    # y_val = np.reshape(y_val, [batch_size, n_row_val, window])
-    #
-    # x_test = np.array(x_test)
-    # x_test = x_test[:, :new_N_val]
-    # x_test = np.reshape(x_test, [batch_size, n_row_val, window])
-    #
-    # y_test = np.array(y_test)
-    # y_test = y_test[:, :new_N_val]
-    # y_test = np.reshape(y_test, [batch_size, n_row_val, window])
-    #
-    # r = np.array(r)

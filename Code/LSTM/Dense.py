@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 
-def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
+def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -19,8 +19,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     if encoder_units[-1] != decoder_units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
     dff_output = kwargs.get('dff_output', 128)
-    model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
-    save_folder = kwargs.get('save_folder', 'LSTM_TESTING')
+    model_save_dir = kwargs.get('model_save_dir', '../../Dense_TrainedModels')
+    save_folder = kwargs.get('save_folder', 'Dense_TESTING')
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
@@ -40,28 +40,23 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
-        outputs = LSTM(first_unit_encoder, return_sequences=True, name='LSTM_En0')(encoder_inputs)
+        encoder_outputs = Dense(first_unit_encoder, name='Dense_En0')(encoder_inputs)
         for i, unit in enumerate(encoder_units):
-            outputs = LSTM(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
-        outputs, state_h, state_c = LSTM(last_unit_encoder, return_state=True, name='LSTM_EnFin')(outputs)
+            encoder_outputs = Dense(unit, name='Dense_En' + str(i + 1))(encoder_outputs)
+        encoder_outputs = Dense(last_unit_encoder, name='Dense_EnFin')(encoder_outputs)
     else:
-        outputs, state_h, state_c = LSTM(first_unit_encoder, return_state=True, name='LSTM_En')(encoder_inputs)
-
-    encoder_states = [state_h, state_c]
+        encoder_outputs = Dense(first_unit_encoder, name='Dense_En')(encoder_inputs)
 
     decoder_inputs = Input(shape=(T-1,D), name='dec_input')
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
-        outputs = LSTM(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)(decoder_inputs,
-                                                                                   initial_state=encoder_states)
+        outputs = Dense(first_unit_decoder, name='Dense_De0')(decoder_inputs)
         for i, unit in enumerate(decoder_units):
-            outputs = LSTM(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)(outputs)
-        outputs, _, _ = LSTM(last_unit_decoder, return_sequences=True, return_state=True, name='LSTM_DeFin', dropout=drop)(outputs)
+            outputs = Dense(unit, name='Dense_De' + str(i + 1))(outputs)
+        outputs = Dense(last_unit_decoder, name='Dense_DeFin')(outputs)
     else:
-        outputs, _, _ = LSTM(first_unit_decoder, return_sequences=True, return_state=True, name='LSTM_De', dropout=drop)(
-                                                                                        decoder_inputs,
-                                                                                        initial_state=encoder_states)
+        outputs = Dense(first_unit_decoder, name='Dense_De')(decoder_inputs)
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
     #outputs = Dense(dff_output, activation='relu', name='Dff_Lay')(outputs)
@@ -194,9 +189,9 @@ if __name__ == '__main__':
     #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
-    trainLSTM(data_dir=data_dir,
+    trainDense(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
-              save_folder='LSTM_Testing',
+              save_folder='Dense_Testing',
               ckpt_flag=True,
               b_size=28,
               learning_rate=0.0001,
