@@ -154,6 +154,11 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = scaler[1].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen)
         y_gen = scaler[1].inverse_transform(y_gen)
+
+        predictions = predictions.reshape(-1)
+        x_gen = x_gen.reshape(-1)
+        y_gen = y_gen.reshape(-1)
+
         for i, indx in enumerate(gen_indxs):
             # Define directories
             pred_name = '_pred.wav'
@@ -198,7 +203,7 @@ if __name__ == '__main__':
               model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
               ckpt_flag=True,
-              b_size=28,
+              b_size=16,
               learning_rate=0.0001,
               encoder_units=[3, 2],
               decoder_units=[2, 2],
