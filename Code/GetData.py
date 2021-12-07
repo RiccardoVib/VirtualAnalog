@@ -12,7 +12,7 @@ def get_data(data_dir, batch_size=28, seed=422):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
@@ -68,11 +68,11 @@ def get_data(data_dir, batch_size=28, seed=422):
     #     y_test.append(tar[t, n_train+n_val:])
     #
     # 100 ms = 0.1*fs
-    window = int(fs * 0.2 / 6)
+    window = int(fs * 0.2)
     all_inp, all_tar = [], []
     for i in range(batch_size):
-        #for t in range(inp.shape[1]-window):
-        for t in range(10):
+        for t in range(inp.shape[1]-window):
+        #for t in range(10):
             all_inp.append(inp[i, t:t + window])
             all_tar.append(tar[i, t:t + window])
             r.append(ratios[i])

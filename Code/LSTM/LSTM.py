@@ -3,7 +3,8 @@ import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from Code.GetData import get_data
-import scipy as sp
+from scipy.io import wavfile
+from scipy import signal
 from tensorflow.keras.layers import Input, Dense, Flatten, LSTM
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
@@ -11,7 +12,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
-    b_size = kwargs.get('b_size', 28)
+    b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
     encoder_units = kwargs.get('encoder_units', [8, 8])
     decoder_units = kwargs.get('decoder_units', [8, 8])
@@ -31,11 +32,11 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #T past values used to predict the next value
     T = x.shape[1]#//2 #time window
-    D = 1#x.shape[1]-1
+    D = 1
     C = 1
     out_D = x.shape[1]-1
 
-    encoder_inputs = Input(shape=(T, D), name='enc_input')
+    encoder_inputs = Input(shape=(T,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
@@ -48,7 +49,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     encoder_states = [state_h, state_c]
 
-    decoder_inputs = Input(shape=(T-1, D), name='dec_input')
+    decoder_inputs = Input(shape=(T-1,D), name='dec_input')
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
@@ -64,7 +65,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
     #outputs = Dense(dff_output, activation='relu', name='Dff_Lay')(outputs)
-    decoder_outputs = Dense(out_D, activation='sigmoid', name='DenseLay')(outputs)
+    decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     model.summary()
 
@@ -99,27 +100,27 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #train the RNN
 
-    results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=28, epochs=epochs,
+    results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=16, epochs=epochs,
                         validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]), callbacks=callbacks)
 
-    #prediction test
-    predictions = []
-    #last train input
-    last_x = x_test[0, :-1]  # DxT array of length T
-
-    while len(predictions) < len(y_test):
-        p = model.predict([last_x[0, :], y_test[0, :-1]]) # 1x1 array -> scalar
-        predictions.append(p)
-        last_x = np.roll(last_x, -1)
-
-        for i in range(last_x.shape[0]):
-            last_x[-1, i] = p
-
-
-    plt.plot(y_test, label='forecast target')
-    plt.plot(predictions, label='forecast prediction')
-    plt.legend()
-    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
+    # #prediction test
+    # predictions = []
+    # #last train input
+    # last_x = x_test[:, :-1]  # DxT array of length T
+    #
+    # while len(predictions) < len(y_test):
+    #     p = model.predict([last_x[0, :], y_test[0, :-1]]) # 1x1 array -> scalar
+    #     predictions.append(p)
+    #     last_x = np.roll(last_x, -1)
+    #
+    #     for i in range(last_x.shape[0]):
+    #         last_x[-1, i] = p
+    #
+    #
+    # plt.plot(y_test, label='forecast target')
+    # plt.plot(predictions, label='forecast prediction')
+    # plt.legend()
+    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=16)
 
     final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     if ckpt_flag:
@@ -149,10 +150,10 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_test
         y_gen = y_test
         predictions = model.predict([x_gen, y_gen[:, :-1]])
-        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:,:-1]], y_gen[:,1:], batch_size=b_size, verbose=0))
-        predictions = scaler.inverse_transform(predictions)
-        x_gen = scaler.inverse_transform(x_gen)
-        y_gen = scaler.inverse_transform(y_gen)
+        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
+        predictions = scaler[1].inverse_transform(predictions)
+        x_gen = scaler[0].inverse_transform(x_gen)
+        y_gen = scaler[1].inverse_transform(y_gen)
         for i, indx in enumerate(gen_indxs):
             # Define directories
             pred_name = '_pred.wav'
@@ -167,9 +168,13 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
                 os.makedirs(os.path.dirname(pred_dir))
 
             # Save Wav files
-            sp.io.wavfile.write(pred_dir, 44100, predictions)
-            sp.io.wavfile.write(inp_dir, 44100, x_gen)
-            sp.io.wavfile.write(tar_dir, 44100, y_gen)
+            predictions = predictions.astype('int16')
+            x_gen = x_gen.astype('int16')
+            y_gen = y_gen.astype('int16')
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
+
             # Save some Spectral Plots:
     #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
     #         if not os.path.exists(spectral_dir):
@@ -185,8 +190,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
 if __name__ == '__main__':
-    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     trainLSTM(data_dir=data_dir,
