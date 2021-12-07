@@ -20,7 +20,7 @@ def data_preparation(**kwargs):
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
     L = 5349643-100#10699286-100 #32097856#MAX=34435680
-    inp_collector, tar_collector = [], []
+    inp_collector, tar_collector, ratio_collector, threshold_collector = [], [], [], []
     ratio, threshold = '', ''
     fs = 0
     for file in file_dirs:
@@ -32,19 +32,25 @@ def data_preparation(**kwargs):
         fs, audio_stereo = wavfile.read(file) #fs= 96,000 Hz
         inp = audio_stereo[:, 0].astype(np.float32)
         tar = audio_stereo[1:, 1].astype(np.float32)
+        ratio = str(ratio)
+        if len(ratio) > 2:
+            ratio = ratio[:2] + '.' + ratio[2:]
 
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
-
+        ratio = float(ratio)
         if len(tar) > L:
             inp = inp[0:L]
             tar = tar[0:L]
 
+        tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
         #if len(inp) < L:
         #    L = len(inp)
 
         inp_collector.append(inp)
         tar_collector.append(tar)
+        ratio_collector.append(ratio)
+        threshold_collector.append(threshold)
 #        time = np.linspace(0, len(inp) / fs, num=len(inp))
 #        plt.figure()
 #        plt.title("Input")
@@ -56,7 +62,7 @@ def data_preparation(**kwargs):
 #        plt.plot(time, tar)
 #        plt.show()
 
-    metadatas = {'ratio': ratio, 'threshold': threshold, 'samplerate': fs}
+    metadatas = {'ratio': ratio_collector, 'threshold': threshold_collector, 'samplerate': fs/factor}
     data = {'inp': inp_collector, 'tar': tar_collector}
 
     # open a file, where you ant to store the data

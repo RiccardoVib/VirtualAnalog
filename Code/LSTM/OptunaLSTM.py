@@ -63,7 +63,7 @@ def objective(trial):
         seed=seed,
         ckpt_flag=False,
         loss_type=loss_type,
-        b_size=16,
+        b_size=28,
         drop=drop,
         opt_type=opt_type,
         learning_rate=learning_rate,
