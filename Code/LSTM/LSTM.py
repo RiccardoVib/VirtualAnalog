@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from Code.GetData import get_data
 from scipy.io import wavfile
 from scipy import signal
-from tensorflow.keras.layers import Input, Dense, Flatten, LSTM
+from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
@@ -24,6 +24,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
+    inference = kwargs.get('inference', False)
 
     if data is None:
         x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
@@ -31,10 +32,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value = data
 
     #T past values used to predict the next value
-    T = x.shape[1]#//2 #time window
+    T = x.shape[1] #time window
     D = 1
-    C = 1
-    out_D = x.shape[1]-1
 
     encoder_inputs = Input(shape=(T,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
@@ -64,7 +63,6 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
                                                                                         initial_state=encoder_states)
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    #outputs = Dense(dff_output, activation='relu', name='Dff_Lay')(outputs)
     decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     model.summary()
@@ -130,19 +128,21 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             model.load_weights(best)
     test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
-
-    results = {
-        'Test_Loss': test_loss,
-        'Min_val_loss': np.min(results.history['val_loss']),
-        'Min_train_loss': np.min(results.history['loss']),
-        'b_size': b_size,
-        'learning_rate': learning_rate,
-        'encoder_units': encoder_units,
-        'decoder_units': decoder_units,
-        'dff_output': dff_output,
-        'Train_loss': results.history['loss'],
-        'Val_loss': results.history['val_loss']
-    }
+    if inference:
+        results = {}
+    else:
+        results = {
+            'Test_Loss': test_loss,
+            'Min_val_loss': np.min(results.history['val_loss']),
+            'Min_train_loss': np.min(results.history['loss']),
+            'b_size': b_size,
+            'learning_rate': learning_rate,
+            'encoder_units': encoder_units,
+            'decoder_units': decoder_units,
+            'dff_output': dff_output,
+            'Train_loss': results.history['loss'],
+            'Val_loss': results.history['val_loss']
+        }
 
     if generate_wav is not None:
         np.random.seed(seed)
@@ -192,7 +192,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     #                       save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
     #
     #
-
+    return results
 
 if __name__ == '__main__':
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'

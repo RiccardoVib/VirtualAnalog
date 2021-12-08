@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from Code.GetData import get_data
 from scipy.io import wavfile
 from scipy import signal
-from tensorflow.keras.layers import Input, Dense, Flatten, LSTM
+from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
@@ -24,6 +24,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
+    inference = kwargs.get('inference', False)
 
     if data is None:
         x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
@@ -125,19 +126,21 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
             model.load_weights(best)
     test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
-
-    results = {
-        'Test_Loss': test_loss,
-        'Min_val_loss': np.min(results.history['val_loss']),
-        'Min_train_loss': np.min(results.history['loss']),
-        'b_size': b_size,
-        'learning_rate': learning_rate,
-        'encoder_units': encoder_units,
-        'decoder_units': decoder_units,
-        'dff_output': dff_output,
-        'Train_loss': results.history['loss'],
-        'Val_loss': results.history['val_loss']
-    }
+    if inference:
+        results = {}
+    else:
+        results = {
+            'Test_Loss': test_loss,
+            'Min_val_loss': np.min(results.history['val_loss']),
+            'Min_train_loss': np.min(results.history['loss']),
+            'b_size': b_size,
+            'learning_rate': learning_rate,
+            'encoder_units': encoder_units,
+            'decoder_units': decoder_units,
+            'dff_output': dff_output,
+            'Train_loss': results.history['loss'],
+            'Val_loss': results.history['val_loss']
+        }
 
     if generate_wav is not None:
         np.random.seed(seed)
@@ -149,6 +152,9 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = scaler[1].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen)
         y_gen = scaler[1].inverse_transform(y_gen)
+        predictions = predictions.reshape(-1)
+        x_gen = x_gen.reshape(-1)
+        y_gen = y_gen.reshape(-1)
         for i, indx in enumerate(gen_indxs):
             # Define directories
             pred_name = '_pred.wav'
@@ -182,7 +188,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     #                       save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
     #
     #
-
+    return results
 
 if __name__ == '__main__':
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
@@ -193,7 +199,7 @@ if __name__ == '__main__':
               model_save_dir='../../../TrainedModels',
               save_folder='Dense_Testing',
               ckpt_flag=True,
-              b_size=28,
+              b_size=16,
               learning_rate=0.0001,
               encoder_units=[3, 2],
               decoder_units=[2, 2],
