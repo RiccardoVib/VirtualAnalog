@@ -1,5 +1,10 @@
+import tensorboard
+#load_ext tensorboard
+#rm -rf ./logs/
+
 import numpy as np
 import os
+import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from Code.GetData import get_data
@@ -96,10 +101,15 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         else:
             print("Initializing random weights.")
 
-    #train the RNN
+    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
+
+    #train the RNN
     results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=16, epochs=epochs,
-                        validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]), callbacks=callbacks)
+                        validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]),
+                        callbacks=tensorboard_callback)
+                        #callbacks=callbacks)
 
     # #prediction test
     # predictions = []
@@ -199,6 +209,7 @@ if __name__ == '__main__':
     #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
+    start = time.time()
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
@@ -210,3 +221,5 @@ if __name__ == '__main__':
               epochs=1,
               data=data,
               generate_wav=2)
+    end = time.time()
+    print(end - start)
