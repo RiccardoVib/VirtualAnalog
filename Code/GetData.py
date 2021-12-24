@@ -23,6 +23,7 @@ def get_data(data_dir, batch_size=28, seed=422):
     inp = Z['inp']
     tar = Z['tar']
     ratios = M['ratio']
+    threshold = M['threshold']
     fs = M['samplerate']
     # -----------------------------------------------------------------------------------------------------------------
     # Scale data to be within (0, 1)
@@ -31,68 +32,77 @@ def get_data(data_dir, batch_size=28, seed=422):
     inp = np.array(inp, dtype=np.float32)
     tar = np.array(tar, dtype=np.float32)
     ratios = np.array(ratios, dtype=np.float32)
+    thresholds = np.array(threshold, dtype=np.float32)
 
+    scaler = my_scaler()
     scaler_ratios = my_scaler()
-    scaler_inp = my_scaler()
-    scaler_tar = my_scaler()
-    scaler_ratios.fit(ratios)
-    scaler_inp.fit(inp)
-    scaler_tar.fit(tar)
-    inp = scaler_inp.transform(inp)
-    tar = scaler_tar.transform(tar)
-    ratios = scaler_ratios.transform(ratios)
+    scaler_threshold = my_scaler()
 
-    zero_value_inp = (0 - scaler_inp.min_data)/(scaler_inp.max_data - scaler_inp.min_data)
-    zero_value_tar = (0 - scaler_tar.min_data) / (scaler_tar.max_data - scaler_tar.min_data)
+    scaler_ratios.fit(ratios)
+    scaler_threshold.fit(thresholds)
+    scaler.fit(inp)
+    scaler.fit(tar)
+    # scaler_ratios = my_scaler()
+    # scaler_inp = my_scaler()
+    # scaler_tar = my_scaler()
+    # scaler_ratios.fit(ratios)
+    # scaler_inp.fit(inp)
+    # scaler_tar.fit(tar)
+    # inp = scaler_inp.transform(inp)
+    # tar = scaler_tar.transform(tar)
+    # ratios = scaler_ratios.transform(ratios)
+    #
+    zero_value_inp = (0 - scaler.min_data)/(scaler.max_data - scaler.min_data)
+    zero_value_tar = (0 - scaler.min_data) / (scaler.max_data - scaler.min_data)
     zero_value_ratio = (0 - scaler_ratios.min_data) / (scaler_ratios.max_data - scaler_ratios.min_data)
-    zero_value = [zero_value_inp, zero_value_tar, zero_value_ratio]
-    scaler = [scaler_inp, scaler_tar, scaler_ratios]
+    zero_value_threshold = (0 - scaler_threshold.min_data) / (scaler_threshold.max_data - scaler_threshold.min_data)
+    zero_value = [zero_value_inp, zero_value_tar, zero_value_ratio, zero_value_threshold]
+    scaler = [scaler, scaler_ratios, scaler_threshold]
     # -----------------------------------------------------------------------------------------------------------------
     # Shuffle indexing matrix and and split into test, train validation
     # -----------------------------------------------------------------------------------------------------------------
-    #N = len(inp[0]) #32097856
-    #n_train = N//100*70
-    #n_val = N//100*15
-    x, y, x_val, y_val, x_test, y_test, r = [], [], [], [], [], [], []
-    #batch_size = 1
-    #inp = inp[0:batch_size, :]
-    #tar = tar[0:batch_size, :]
-    # for i in range(batch_size):
-    #     x.append(inp[i, 0:n_train])
-    #     x_val.append(inp[i, n_train:n_train+n_val])
-    #     x_test.append(inp[i, n_train+n_val:])
-    #     r.append(ratios[i])
-    # for t in range(batch_size):
-    #     y.append(tar[t, 0:n_train])
-    #     y_val.append(tar[t, n_train:n_train+n_val])
-    #     y_test.append(tar[t, n_train+n_val:])
-    #
-    # 100 ms = 0.1*fs
+
+    x, y, x_val, y_val, x_test, y_test = [], [], [], [], [], []
+
     window = int(fs * 0.1)
-    all_inp, all_tar = [], []
-    batch_size = 1
+    all_inp, all_tar, r, thre = [], [],  [], []
+    batch_size = 2
     for i in range(batch_size):
         for t in range(inp.shape[1]//window):
-            all_inp.append(inp[i, t*window:t*window + window])
-            all_tar.append(tar[i, t*window:t*window + window])
-            r.append(ratios[i])
+            all_inp.append([inp[i, t*window:t*window + window]]) #, np.repeat(ratios[i], window)])
+            all_tar.append([tar[i, t*window:t*window + window]]) #, np.repeat(ratios[i], window)])
 
     all_inp = np.array(all_inp)
     all_tar = np.array(all_tar)
-    r = np.array(r)
+
+    w = 2  # n of column
+    h = len(all_inp)  # n of row
+    matrix = [[0 for x in range(w)] for y in range(h)]
+    for i in range(h):
+        matrix[i][0] = all_inp[i]
+        matrix[i][1] = all_tar[i]
+
+    #np.random.shuffle(matrix)
 
     N = all_inp.shape[0]
     n_train = N//100*70
     n_val = (N-n_train)//2
 
-    x = all_inp[:n_train]
-    y = all_tar[:n_train]
-    r_train = r[:n_train]
-    x_val = all_inp[n_train:n_train+n_val]
-    y_val = all_tar[n_train:n_train+n_val]
-    r_val = r[n_train:n_train+n_val]
-    x_test = all_inp[n_train+n_val:]
-    y_test = all_tar[n_train+n_val:]
-    r_test = r[n_train+n_val:]
+    for n in range(n_train):
+        x.append(matrix[n][0])
+        y.append(matrix[n][1])
 
-    return x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value
+    for n in range(n_val):
+        x_val.append(matrix[n_train + n][0])
+        y_val.append(matrix[n_train + n][1])
+        x_test.append(matrix[n_train + n_val + n][0])
+        y_test.append(matrix[n_train + n_val + n][1])
+
+    x = np.array(x)
+    y = np.array(y)
+    x_val = np.array(x_val)
+    y_val = np.array(y_val)
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
+
+    return x, y, x_val, y_val, x_test, y_test, scaler, zero_value

@@ -12,11 +12,11 @@ def get_keys_from_value(d, val):
 
 def data_preparation(**kwargs):
     #data_dir = '/Users/riccardosimionato/Datasets/VA'
-    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
-    #save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
+    save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     factor = 6#3
-    data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
-    save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
+    #data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
+    #save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
     L = 5349643-100#10699286-100 #32097856#MAX=34435680
@@ -39,11 +39,13 @@ def data_preparation(**kwargs):
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
         ratio = float(ratio)
+
+        tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
+
         if len(tar) > L:
             inp = inp[0:L]
             tar = tar[0:L]
 
-        tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
         #if len(inp) < L:
         #    L = len(inp)
 

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from Code.GetData import get_data
 from scipy.io import wavfile
 from scipy import signal
-from tensorflow.keras.layers import Input, Dense, Concatenate
+from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
@@ -14,13 +14,11 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
-    encoder_units = kwargs.get('encoder_units', [8, 8])
-    decoder_units = kwargs.get('decoder_units', [8, 8])
-    if encoder_units[-1] != decoder_units[0]:
+    units = kwargs.get('units', [8, 8])
+    if units[-1] != units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
-    dff_output = kwargs.get('dff_output', 128)
-    model_save_dir = kwargs.get('model_save_dir', '../../Dense_TrainedModels')
-    save_folder = kwargs.get('save_folder', 'Dense_TESTING')
+    model_save_dir = kwargs.get('model_save_dir', '../../DenseFeed_TrainedModels')
+    save_folder = kwargs.get('save_folder', 'DenseFeed_TESTING')
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
@@ -35,33 +33,20 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     T = x.shape[2] #time window
     D = x.shape[1]
 
-    encoder_inputs = Input(shape=(D,T), name='enc_input')
-    first_unit_encoder = encoder_units.pop(0)
-    if len(encoder_units) > 0:
-        last_unit_encoder = encoder_units.pop()
-        encoder_outputs = Dense(first_unit_encoder, name='Dense_En0')(encoder_inputs)
-        for i, unit in enumerate(encoder_units):
-            encoder_outputs = Dense(unit, name='Dense_En' + str(i + 1))(encoder_outputs)
-        encoder_outputs = Dense(last_unit_encoder, name='Dense_EnFin')(encoder_outputs)
+    inputs = Input(shape=(D,T), name='input')
+    first_unit = units.pop(0)
+    if len(units) > 0:
+        last_unit = units.pop()
+        outputs = Dense(first_unit, name='Dense_0')(inputs)
+        for i, unit in enumerate(units):
+            outputs = Dense(unit, name='Dense_' + str(i + 1))(outputs)
+        outputs = Dense(last_unit, name='Dense_Fin')(outputs)
     else:
-        encoder_outputs = Dense(first_unit_encoder, name='Dense_En')(encoder_inputs)
-
-    decoder_inputs = Input(shape=(D,T-1), name='dec_input')
-    input_tot = Concatenate()([decoder_inputs, encoder_outputs])
-    first_unit_decoder = decoder_units.pop(0)
-    if len(decoder_units) > 0:
-        last_unit_decoder = decoder_units.pop()
-        outputs = Dense(first_unit_decoder, name='Dense_De0')(input_tot)
-        for i, unit in enumerate(decoder_units):
-            outputs = Dense(unit, name='Dense_De' + str(i + 1))(outputs)
-        outputs = Dense(last_unit_decoder, name='Dense_DeFin')(outputs)
-    else:
-        outputs = Dense(first_unit_decoder, name='Dense_De')(input_tot)
+        outputs = Dense(first_unit, name='Dense')(inputs)
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    #outputs = Dense(dff_output, activation='relu', name='Dff_Lay')(outputs)
-    decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
-    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    final_outputs = Dense(T, activation='sigmoid', name='DenseLay')(outputs)
+    model = Model(inputs, final_outputs)
     model.summary()
 
     if opt_type == 'Adam':
@@ -95,8 +80,8 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #train the RNN
 
-    results = model.fit([x, y[:, :, :-1]], y[:, :, 1:], batch_size=16, epochs=epochs,
-                        validation_data=([x_val, y_val[:, :, :-1]], y_val[:, :, 1:]), callbacks=callbacks)
+    results = model.fit([x], y, batch_size=16, epochs=epochs,
+                        validation_data=(x_val, y_val), callbacks=callbacks)
 
     # #prediction test
     # predictions = []
@@ -115,15 +100,15 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     # plt.plot(y_test, label='forecast target')
     # plt.plot(predictions, label='forecast prediction')
     # plt.legend()
-    predictions_test = model.predict([x_test, y_test[:, :, :-1]], batch_size=16)
+    predictions_test = model.predict([x_test], batch_size=b_size)
 
-    final_model_test_loss = model.evaluate([x_test, y_test[:, :, :-1]], y_test[:, :, 1:], batch_size=b_size, verbose=0)
+    final_model_test_loss = model.evaluate([x_test], y_test, batch_size=b_size, verbose=0)
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
         if best is not None:
             print("Restored weights from {}".format(ckpt_dir))
             model.load_weights(best)
-    test_loss = model.evaluate([x_test, y_test[:, :, :-1]], y_test[:, :, 1:], batch_size=b_size, verbose=0)
+    test_loss = model.evaluate([x_test], y_test, batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
     if inference:
         results = {}
@@ -134,9 +119,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
             'Min_train_loss': np.min(results.history['loss']),
             'b_size': b_size,
             'learning_rate': learning_rate,
-            'encoder_units': encoder_units,
-            'decoder_units': decoder_units,
-            'dff_output': dff_output,
+            'units': units,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss']
         }
@@ -146,12 +129,22 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         gen_indxs = np.random.choice(len(y_test), generate_wav)
         x_gen = x_test
         y_gen = y_test
-        predictions = model.predict([x_gen, y_gen[:, :, :-1]])
-        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :, :-1]], y_gen[:, :, 1:], batch_size=b_size, verbose=0))
+        predictions = model.predict(x_gen)
+        print('GenerateWavLoss: ', model.evaluate([x_gen], y_gen, batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_gen)
-        y_gen = scaler[0].inverse_transform(y_gen)
-        predictions = predictions.reshape(-1)
+        x_gen = scaler[0].inverse_transform(x_gen[:,0,:])
+        y_gen = scaler[0].inverse_transform(y_gen[:,0,:])
+
+        x_val_ = scaler[0].inverse_transform(x_val[:,0,:])
+        x_train_ = scaler[0].inverse_transform(x[:,0,:])
+        dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', 'prova.wav'))
+        if not os.path.exists(os.path.dirname(dir)):
+            os.makedirs(os.path.dirname(dir))
+        x_val_ = x_val_.reshape(-1)
+        x_val_ = x_val_.astype('int16')
+        wavfile.write(dir, 16000, x_val_.T)
+
+        predictions = predictions[:,0].reshape(-1)
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
         for i, indx in enumerate(gen_indxs):
@@ -196,12 +189,11 @@ if __name__ == '__main__':
     data = get_data(data_dir=data_dir, seed=seed)
     trainDense(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
-              save_folder='Dense_Testing',
+              save_folder='DenseFeed_Testing',
               ckpt_flag=True,
               b_size=16,
               learning_rate=0.0001,
-              encoder_units=[3, 2],
-              decoder_units=[2, 2],
+              first_unit=[2, 2],
               epochs=1,
               data=data,
               generate_wav=2)
