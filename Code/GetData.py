@@ -6,7 +6,7 @@ import numpy as np
 from Code.Preprocess import my_scaler
 import math
 
-def get_data(data_dir, batch_size=28, seed=422):
+def get_data(data_dir, batch_size=28, shuffle=False, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -41,17 +41,11 @@ def get_data(data_dir, batch_size=28, seed=422):
     scaler_ratios.fit(ratios)
     scaler_threshold.fit(thresholds)
     scaler.fit(inp)
-    scaler.fit(tar)
-    # scaler_ratios = my_scaler()
-    # scaler_inp = my_scaler()
-    # scaler_tar = my_scaler()
-    # scaler_ratios.fit(ratios)
-    # scaler_inp.fit(inp)
-    # scaler_tar.fit(tar)
-    # inp = scaler_inp.transform(inp)
-    # tar = scaler_tar.transform(tar)
-    # ratios = scaler_ratios.transform(ratios)
-    #
+    inp = scaler.transform(inp)
+    tar = scaler.transform(tar)
+    thresholds = scaler_threshold.transform(thresholds)
+    ratios = scaler_ratios.transform(ratios)
+
     zero_value_inp = (0 - scaler.min_data)/(scaler.max_data - scaler.min_data)
     zero_value_tar = (0 - scaler.min_data) / (scaler.max_data - scaler.min_data)
     zero_value_ratio = (0 - scaler_ratios.min_data) / (scaler_ratios.max_data - scaler_ratios.min_data)
@@ -66,11 +60,14 @@ def get_data(data_dir, batch_size=28, seed=422):
 
     window = int(fs * 0.1)
     all_inp, all_tar, r, thre = [], [],  [], []
-    batch_size = 2
+    batch_size = 1
     for i in range(batch_size):
         for t in range(inp.shape[1]//window):
-            all_inp.append([inp[i, t*window:t*window + window]]) #, np.repeat(ratios[i], window)])
-            all_tar.append([tar[i, t*window:t*window + window]]) #, np.repeat(ratios[i], window)])
+
+            inp_temp = np.array([inp[i, t * window:t * window + window], np.repeat(ratios[i], window)])
+            all_inp.append(inp_temp.T)
+            tar_temp = np.array(tar[i, t*window:t*window + window])
+            all_tar.append(tar_temp.T)
 
     all_inp = np.array(all_inp)
     all_tar = np.array(all_tar)
@@ -81,8 +78,8 @@ def get_data(data_dir, batch_size=28, seed=422):
     for i in range(h):
         matrix[i][0] = all_inp[i]
         matrix[i][1] = all_tar[i]
-
-    #np.random.shuffle(matrix)
+    if shuffle:
+        np.random.shuffle(matrix)
 
     N = all_inp.shape[0]
     n_train = N//100*70

@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 
-def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
+def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -25,15 +25,15 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     inference = kwargs.get('inference', False)
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed, shuffle=shuffle_data)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     #T past values used to predict the next value
-    T = x.shape[2] #time window
-    D = x.shape[1]
+    T = x.shape[1] #time window
+    D = x.shape[2]
 
-    inputs = Input(shape=(D,T), name='input')
+    inputs = Input(shape=(T,D), name='input')
     first_unit = units.pop(0)
     if len(units) > 0:
         last_unit = units.pop()
@@ -45,7 +45,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         outputs = Dense(first_unit, name='Dense')(inputs)
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    final_outputs = Dense(T, activation='sigmoid', name='DenseLay')(outputs)
+    final_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
     model = Model(inputs, final_outputs)
     model.summary()
 
@@ -132,19 +132,10 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = model.predict(x_gen)
         print('GenerateWavLoss: ', model.evaluate([x_gen], y_gen, batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_gen[:,0,:])
-        y_gen = scaler[0].inverse_transform(y_gen[:,0,:])
+        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
+        y_gen = scaler[0].inverse_transform(y_gen)
 
-        x_val_ = scaler[0].inverse_transform(x_val[:,0,:])
-        x_train_ = scaler[0].inverse_transform(x[:,0,:])
-        dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', 'prova.wav'))
-        if not os.path.exists(os.path.dirname(dir)):
-            os.makedirs(os.path.dirname(dir))
-        x_val_ = x_val_.reshape(-1)
-        x_val_ = x_val_.astype('int16')
-        wavfile.write(dir, 16000, x_val_.T)
-
-        predictions = predictions[:,0].reshape(-1)
+        predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
         for i, indx in enumerate(gen_indxs):
@@ -164,9 +155,9 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
             predictions = predictions.astype('int16')
             x_gen = x_gen.astype('int16')
             y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions.T)
-            wavfile.write(inp_dir, 16000, x_gen.T)
-            wavfile.write(tar_dir, 16000, y_gen.T)
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
 
             # Save some Spectral Plots:
     #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
@@ -196,4 +187,5 @@ if __name__ == '__main__':
               first_unit=[2, 2],
               epochs=1,
               data=data,
-              generate_wav=2)
+              generate_wav=2,
+              shuffle_data=False)

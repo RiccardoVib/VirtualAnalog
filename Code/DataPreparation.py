@@ -36,11 +36,15 @@ def data_preparation(**kwargs):
         if len(ratio) > 2:
             ratio = ratio[:2] + '.' + ratio[2:]
 
+        #target is delayed by one sample due the system processing so
+        #need to be moved
+        tar = tar[1:len(tar)]
+
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
         ratio = float(ratio)
-
-        tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
+        threshold = float(threshold)
+        #tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
 
         if len(tar) > L:
             inp = inp[0:L]
@@ -52,7 +56,7 @@ def data_preparation(**kwargs):
         inp_collector.append(inp)
         tar_collector.append(tar)
         ratio_collector.append(ratio)
-        threshold_collector.append(threshold)
+        threshold_collector.append(np.abs(threshold))
 #        time = np.linspace(0, len(inp) / fs, num=len(inp))
 #        plt.figure()
 #        plt.title("Input")

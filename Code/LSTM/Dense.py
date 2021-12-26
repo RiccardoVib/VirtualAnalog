@@ -9,7 +9,6 @@ from tensorflow.keras.layers import Input, Dense, Concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
-
 def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
@@ -32,10 +31,10 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     #T past values used to predict the next value
-    T = x.shape[2] #time window
-    D = x.shape[1]
+    T = x.shape[1] #time window
+    D = x.shape[2]
 
-    encoder_inputs = Input(shape=(D,T), name='enc_input')
+    encoder_inputs = Input(shape=(T,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
@@ -46,8 +45,10 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     else:
         encoder_outputs = Dense(first_unit_encoder, name='Dense_En')(encoder_inputs)
 
-    decoder_inputs = Input(shape=(D,T-1), name='dec_input')
-    input_tot = Concatenate()([decoder_inputs, encoder_outputs])
+    decoder_inputs = Input(shape=(T-1,1), name='dec_input')
+
+    input_tot = Concatenate(axis=-1)([decoder_inputs, encoder_outputs])
+
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
@@ -95,8 +96,8 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #train the RNN
 
-    results = model.fit([x, y[:, :, :-1]], y[:, :, 1:], batch_size=16, epochs=epochs,
-                        validation_data=([x_val, y_val[:, :, :-1]], y_val[:, :, 1:]), callbacks=callbacks)
+    results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=16, epochs=epochs,
+                        validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]), callbacks=callbacks)
 
     # #prediction test
     # predictions = []
@@ -115,15 +116,15 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     # plt.plot(y_test, label='forecast target')
     # plt.plot(predictions, label='forecast prediction')
     # plt.legend()
-    predictions_test = model.predict([x_test, y_test[:, :, :-1]], batch_size=16)
+    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=16)
 
-    final_model_test_loss = model.evaluate([x_test, y_test[:, :, :-1]], y_test[:, :, 1:], batch_size=b_size, verbose=0)
+    final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
         if best is not None:
             print("Restored weights from {}".format(ckpt_dir))
             model.load_weights(best)
-    test_loss = model.evaluate([x_test, y_test[:, :, :-1]], y_test[:, :, 1:], batch_size=b_size, verbose=0)
+    test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
     if inference:
         results = {}
@@ -146,10 +147,10 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         gen_indxs = np.random.choice(len(y_test), generate_wav)
         x_gen = x_test
         y_gen = y_test
-        predictions = model.predict([x_gen, y_gen[:, :, :-1]])
-        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :, :-1]], y_gen[:, :, 1:], batch_size=b_size, verbose=0))
-        predictions = scaler[0].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_gen)
+        predictions = model.predict([x_gen, y_gen[:, :-1]])
+        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
+        predictions = scaler[0].inverse_transform(predictions[:, 0, :])
+        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
         y_gen = scaler[0].inverse_transform(y_gen)
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
@@ -171,9 +172,9 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
             predictions = predictions.astype('int16')
             x_gen = x_gen.astype('int16')
             y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions.T)
-            wavfile.write(inp_dir, 16000, x_gen.T)
-            wavfile.write(tar_dir, 16000, y_gen.T)
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
 
             # Save some Spectral Plots:
     #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
@@ -194,6 +195,11 @@ if __name__ == '__main__':
     data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
+
+    physical_devices = tf.config.experimental.list_physical_devices('GPU')
+    print("Num of GPU availables: ", len(physical_devices))
+    #tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
     trainDense(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
               save_folder='Dense_Testing',

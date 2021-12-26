@@ -1,7 +1,7 @@
 import tensorboard
 #load_ext tensorboard
 #rm -rf ./logs/
-
+import datetime
 import numpy as np
 import os
 import time
@@ -15,7 +15,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 
-def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
+def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -32,13 +32,13 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     inference = kwargs.get('inference', False)
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, seed=seed)
     else:
-        x, y, x_val, y_val, x_test, y_test, r_train, r_val, r_test, scaler, zero_value = data
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     #T past values used to predict the next value
     T = x.shape[1] #time window
-    D = 1
+    D = x.shape[2]
 
     encoder_inputs = Input(shape=(T,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
@@ -53,7 +53,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     encoder_states = [state_h, state_c]
 
-    decoder_inputs = Input(shape=(T-1,D), name='dec_input')
+    decoder_inputs = Input(shape=(T-1,1), name='dec_input')
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
@@ -162,8 +162,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = model.predict([x_gen, y_gen[:, :-1]])
         print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
         predictions = scaler[1].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_gen)
-        y_gen = scaler[1].inverse_transform(y_gen)
+        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
+        y_gen = scaler[0].inverse_transform(y_gen)
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
@@ -186,9 +186,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             predictions = predictions.astype('int16')
             x_gen = x_gen.astype('int16')
             y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions.T)
-            wavfile.write(inp_dir, 16000, x_gen.T)
-            wavfile.write(tar_dir, 16000, y_gen.T)
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
 
             # Save some Spectral Plots:
     #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
@@ -205,11 +205,11 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     return results
 
 if __name__ == '__main__':
-    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
-    start = time.time()
+    #start = time.time()
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
@@ -220,6 +220,7 @@ if __name__ == '__main__':
               decoder_units=[2, 2],
               epochs=1,
               data=data,
-              generate_wav=2)
-    end = time.time()
-    print(end - start)
+              generate_wav=2,
+              shuffle_data=False)
+    #end = time.time()
+    #print(end - start)
