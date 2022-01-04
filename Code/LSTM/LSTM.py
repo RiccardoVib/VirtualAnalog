@@ -23,13 +23,13 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     decoder_units = kwargs.get('decoder_units', [8, 8])
     if encoder_units[-1] != decoder_units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
-    dff_output = kwargs.get('dff_output', 128)
     model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
     save_folder = kwargs.get('save_folder', 'LSTM_TESTING')
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
     inference = kwargs.get('inference', False)
+    loss_type = kwargs.get('loss_type', 'mae')
 
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, seed=seed)
@@ -79,7 +79,12 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     else:
         raise ValueError('Please pass opt_type as either Adam or SGD')
 
-    model.compile(loss='mae', metrics=['mae'], optimizer=opt)
+    if loss_type == 'mae':
+        model.compile(loss='mae', metrics=['mae'], optimizer=opt)
+    elif loss_type == 'mse':
+        model.compile(loss='mse', metrics=['mse'], optimizer=opt)
+    else:
+        raise ValueError('Please pass loss_type as either MAE or MSE')
 
     # TODO: Currently not loading weights as we only save the best model... Should probably
     callbacks = []

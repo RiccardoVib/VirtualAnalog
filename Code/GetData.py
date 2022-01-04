@@ -6,7 +6,7 @@ import numpy as np
 from Code.Preprocess import my_scaler
 import math
 
-def get_data(data_dir, batch_size=28, shuffle=False, seed=422):
+def get_data(data_dir, shuffle=False, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -60,7 +60,7 @@ def get_data(data_dir, batch_size=28, shuffle=False, seed=422):
 
     window = int(fs * 0.1)
     all_inp, all_tar, r, thre = [], [],  [], []
-    batch_size = 1
+    batch_size = 28
     for i in range(batch_size):
         for t in range(inp.shape[1]//window):
 

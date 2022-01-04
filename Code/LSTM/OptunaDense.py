@@ -1,5 +1,5 @@
 import optuna
-from Code.LSTM.LSTM import trainLSTM
+from Code.LSTM.DenseFeed import trainDense
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -48,32 +48,30 @@ def objective(trial):
     learning_rate = trial.suggest_uniform('learning_rate', -5, -2)
     learning_rate = 10**learning_rate
     opt_type = trial.suggest_categorical('opt_type', ['SGD', 'Adam'])
-    loss_type = trial.suggest_categorical('loss_type', ['mae', 'mse'])
-    lstm_units = trial.suggest_int('lstm_units', 2, 7)
-    lstm_units = lstm_units**2
-    lstm_layers = trial.suggest_int('lstm_layers', 1, 4)
-    encoder_units = [lstm_units]*lstm_layers
-    decoder_units = [lstm_units]*lstm_layers
+    #loss_type = trial.suggest_categorical('loss_type', ['mae', 'mse'])
+    units = trial.suggest_int('units', 2, 7)
+    units = units**2
+    layers = trial.suggest_int('layers', 1, 4)
+    units = [units]*layers
     shuff = trial.suggest_categorical('shuffle_data', [False, True])
 
-    val_loss = trainLSTM(
+    val_loss = trainDense(
         data_dir=data_dir,
         epochs=epochs,
         seed=seed,
         ckpt_flag=False,
-        loss_type=loss_type,
+        #loss_type=loss_type,
         b_size=8,
         drop=drop,
         opt_type=opt_type,
         learning_rate=learning_rate,
-        encoder_units=encoder_units,
-        decoder_units=decoder_units,
+        units=units,
         generate_wav=None,
         inference=False,
         shuffle_data=shuff
     )
 
-    val_loss = val_loss['min_val_MSE']
+    #val_loss = val_loss['min_val_MSE']
 
     return val_loss
 

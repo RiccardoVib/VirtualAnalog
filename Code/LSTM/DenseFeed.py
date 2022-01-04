@@ -23,9 +23,10 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
     inference = kwargs.get('inference', False)
+    loss_type = kwargs.get('loss_type', 'mae')
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed, shuffle=shuffle_data)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=shuffle_data)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
@@ -56,7 +57,12 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
     else:
         raise ValueError('Please pass opt_type as either Adam or SGD')
 
-    model.compile(loss='mae', metrics=['mae'], optimizer=opt)
+    if loss_type == 'mae':
+        model.compile(loss='mae', metrics=['mae'], optimizer=opt)
+    elif loss_type == 'mse':
+        model.compile(loss='mse', metrics=['mse'], optimizer=opt)
+    else:
+        raise ValueError('Please pass loss_type as either MAE or MSE')
 
     # TODO: Currently not loading weights as we only save the best model... Should probably
     callbacks = []
