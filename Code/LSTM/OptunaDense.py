@@ -8,7 +8,7 @@ import pandas as pd
 import os
 
 N_TRIALS = 1000
-save_dir = r'C:/Users/riccarsi/Documents/GitHub/OptunaStudy/study_LSTM.pkl'
+save_dir = r'C:/Users/riccarsi/Documents/GitHub/OptunaStudy/study_Dense.pkl'
 data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
 epochs = 20
 seed = 422
@@ -80,8 +80,8 @@ def objective(trial):
     # study = joblib.load(save_dir)
 #    study = optuna.load_study(study_name='lstm_tuning', storage='sqlite:///example_lstm.db')
 #else:
-study = optuna.create_study(direction='minimize', study_name="lstm_tuning",
-                            storage="sqlite:///example_lstm.db", load_if_exists=True)
+study = optuna.create_study(direction='minimize', study_name="Dense_tuning",
+                            storage="sqlite:///example_Dense.db", load_if_exists=True)
 
 #study.add_trials(study.trials)
 #joblib.dump(study, save_dir)
