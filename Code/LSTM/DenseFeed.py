@@ -24,6 +24,7 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
     opt_type = kwargs.get('opt_type', 'Adam')
     inference = kwargs.get('inference', False)
     loss_type = kwargs.get('loss_type', 'mae')
+    shuffle_data = kwargs.get('shuffle_data', 'False')
 
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=shuffle_data)
@@ -126,6 +127,9 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
             'b_size': b_size,
             'learning_rate': learning_rate,
             'units': units,
+            'drop' : drop,
+            'opt_type' : opt_type,
+            'shuffle_data' : shuffle_data,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss']
         }
@@ -180,8 +184,8 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
     return results
 
 if __name__ == '__main__':
-    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     trainDense(data_dir=data_dir,
