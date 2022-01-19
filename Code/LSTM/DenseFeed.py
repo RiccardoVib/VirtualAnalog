@@ -9,7 +9,7 @@ from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
-
+#comment
 def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
