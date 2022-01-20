@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 #comment
-def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwargs):
+def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -27,7 +27,7 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwar
     shuffle_data = kwargs.get('shuffle_data', 'False')
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=shuffle_data)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=shuffle_data, w_length=w_length)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 

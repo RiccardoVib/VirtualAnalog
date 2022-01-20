@@ -56,31 +56,23 @@ def objective(trial):
     layers = trial.suggest_int('layers', 1, 4)
     units = [units]*layers
     shuff = trial.suggest_categorical('shuffle_data', [False, True])
+    w_length = trial.suggest_categorical('w_length', 0.05, 0.01)
 
-
-    # val_loss = trainDense(
-    #     data_dir=data_dir,
-    #     epochs=epochs,
-    #     seed=seed,
-    #     ckpt_flag=False,
-    #     #loss_type=loss_type,
-    #     b_size=8,
-    #     drop=drop,
-    #     opt_type=opt_type,
-    #     learning_rate=learning_rate,
-    #     units=units,
-    #     generate_wav=None,
-    #     inference=False,
-    #     shuffle_data=shuff
-    # )
     val_loss = trainDense(
         data_dir=data_dir,
         epochs=epochs,
         seed=seed,
         ckpt_flag=False,
+        #loss_type=loss_type,
+        b_size=8,
+        drop=drop,
+        opt_type=opt_type,
+        learning_rate=learning_rate,
+        units=units,
         generate_wav=None,
         inference=False,
-        shuffle_data=shuff
+        shuffle_data=shuff,
+        w_length=w_length
     )
 
     val_loss = val_loss['Min_val_loss']

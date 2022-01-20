@@ -6,10 +6,10 @@ import os
 import glob
 import matplotlib.pyplot as plt
 
-data_dir_dense = 'C:/Users/riccarsi/Documents/GitHub/Results/DenseFeed_Testing/WavPredictions'
 #data_dir_dense = 'C:/Users/riccarsi/Documents/GitHub/Results/DenseFeed_Testing/WavPredictions'
-data_dir_LSTM = 'C:/Users/riccarsi/Documents/GitHub/Results/LSTM2_Testing/WavPredictions'
+data_dir_dense = '/Users/riccardosimionato/PycharmProjects/TrainedModels/Dense_Testing/WavPredictions'
 #data_dir_LSTM = 'C:/Users/riccarsi/Documents/GitHub/Results/LSTM2_Testing/WavPredictions'
+data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/TrainedModels/LSTM_Testing/WavPredictions'
 
 file_tar_dense = glob.glob(os.path.normpath('/'.join([data_dir_dense, '_tar.wav'])))
 file_tar_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, '_tar.wav'])))
@@ -66,6 +66,8 @@ audio_tar_LSTM = audio_tar_LSTM.astype(np.float32)
 audio_pred_LSTM = audio_pred_LSTM.astype(np.float32)
 audio_tar_LSTM = audio_tar_LSTM[:len(audio_pred_LSTM)]
 
+audio_tar_LSTM = audio_tar_LSTM[1600:1600*2]
+audio_pred_LSTM = audio_pred_LSTM[1600:1600*2]
 
 time = np.linspace(0, len(audio_tar_LSTM) / fs, num=len(audio_tar_LSTM))
 N = len(audio_tar_LSTM)
