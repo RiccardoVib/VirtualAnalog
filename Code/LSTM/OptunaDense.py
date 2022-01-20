@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import os
 
-N_TRIALS = 1000
+N_TRIALS = 1
 #save_dir = r'C:/Users/riccarsi/Documents/GitHub/OptunaStudy/study_Dense.pkl'
 #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
 save_dir = r'../../Files/study_Dense.pkl'
@@ -58,22 +58,30 @@ def objective(trial):
     shuff = trial.suggest_categorical('shuffle_data', [False, True])
 
 
+    # val_loss = trainDense(
+    #     data_dir=data_dir,
+    #     epochs=epochs,
+    #     seed=seed,
+    #     ckpt_flag=False,
+    #     #loss_type=loss_type,
+    #     b_size=8,
+    #     drop=drop,
+    #     opt_type=opt_type,
+    #     learning_rate=learning_rate,
+    #     units=units,
+    #     generate_wav=None,
+    #     inference=False,
+    #     shuffle_data=shuff
+    # )
     val_loss = trainDense(
         data_dir=data_dir,
         epochs=epochs,
         seed=seed,
         ckpt_flag=False,
-        #loss_type=loss_type,
-        b_size=8,
-        drop=drop,
-        opt_type=opt_type,
-        learning_rate=learning_rate,
-        units=units,
         generate_wav=None,
         inference=False,
         shuffle_data=shuff
     )
-
 
     val_loss = val_loss['Min_val_loss']
 
