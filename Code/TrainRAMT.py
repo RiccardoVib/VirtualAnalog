@@ -31,15 +31,15 @@ def plot_spectral(Zxx, title, save_dir=None):
 def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # Get the data:
     if data is None:
-        x, y, x_val, y_val, scaler, zero_value = get_data(data_dir, batch_size=b_size, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=False, w_length=0.01)
     else:
-        x, y, x_val, y_val, scaler, zero_value = data
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     # -----------------------------------------------------------------------------------------------------------------
     # Set-up model, optimiser, lr_sched and losses:
     # -----------------------------------------------------------------------------------------------------------------
     model_save_dir = kwargs.get('model_save_dir', '../../Transformer_TrainedModels')   # TODO: Change
-    save_folder = kwargs.get('save_folder', 'Transformer_testing')
+    save_folder = kwargs.get('save_folder', 'Transformer_TESTING')
     generate_wav = kwargs.get('generate_wav', None)
     ckpt_flag = kwargs.get('ckpt_flag', False)
     plot_progress = kwargs.get('plot_progress', True)
@@ -75,10 +75,10 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     # Define the training functionality
     # -----------------------------------------------------------------------------------------------------------------
-    @tf.function
+    #@tf.function
     def train_step(inp, tar):
-        tar_inp = tar[:, :-1]
-        tar_real = tar[:, 1:]
+        tar_inp = tar[:, :-1, :]
+        tar_real = tar[:, 1:, :]
 
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
@@ -92,8 +92,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     @tf.function
     def val_step(inp, tar, testing=False):
-        tar_inp = tar[:, :-1]
-        tar_real = tar[:, 1:]
+        tar_inp = tar[:, :-1, :]
+        tar_real = tar[:, 1:, :]
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
@@ -137,7 +137,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
             # Need to make a single prediction for the model as it needs to compile:
             transformer([tf.costant(x[:2], dtype='float32'),
-                         tf.constant(y[:2,:-1], dtype='float32')],
+                         tf.constant(y[:2,:-1,:], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -436,7 +436,7 @@ if __name__ == '__main__':
         save_folder='Transformer_TESTING',
         ckpt_flag=True,
         plot_progress=True,
-        b_size=1,
+        b_size=28,
         num_layers=2,
         d_model=32,
         dff=32,

@@ -12,7 +12,7 @@ N_TRIALS = 1
 #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
 save_dir = r'../../Files/study_Dense.pkl'
 data_dir = '../../Files'
-epochs = 20
+epochs = 1
 seed = 422
 
 #comment
@@ -56,7 +56,7 @@ def objective(trial):
     layers = trial.suggest_int('layers', 1, 4)
     units = [units]*layers
     shuff = trial.suggest_categorical('shuffle_data', [False, True])
-    w_length = trial.suggest_categorical('w_length', 0.05, 0.01)
+    #w_length = trial.suggest_uniform('w_length', 0.05, 0.01)
 
     val_loss = trainDense(
         data_dir=data_dir,
@@ -72,7 +72,7 @@ def objective(trial):
         generate_wav=None,
         inference=False,
         shuffle_data=shuff,
-        w_length=w_length
+        w_length=0.01
     )
 
     val_loss = val_loss['Min_val_loss']
@@ -84,6 +84,8 @@ def objective(trial):
     # study = joblib.load(save_dir)
 #    study = optuna.load_study(study_name='lstm_tuning', storage='sqlite:///example_lstm.db')
 #else:
+
+
 study = optuna.create_study(direction='minimize', study_name="dense_tuning",
                             storage="sqlite:///example_dense.db", load_if_exists=True)
 

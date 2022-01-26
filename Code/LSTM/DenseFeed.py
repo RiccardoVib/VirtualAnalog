@@ -88,7 +88,7 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
     #train the RNN
 
     results = model.fit([x], y, batch_size=16, epochs=epochs,
-                        validation_data=(x_val, y_val), callbacks=callbacks)
+                        validation_data=(x_val, y_val), callbacks=callbacks, verbose=0)
 
     # #prediction test
     # predictions = []
@@ -184,6 +184,7 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
     return results
 
 if __name__ == '__main__':
+    tf.get_logger().setLevel('INFO')
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
     #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     seed = 422
