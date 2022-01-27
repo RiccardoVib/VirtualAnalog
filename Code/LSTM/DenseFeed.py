@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from Code.GetData import get_data
+from Code.TrainFunctionality import coefficient_of_determination
 from scipy.io import wavfile
 from scipy import signal
 from tensorflow.keras.layers import Input, Dense
@@ -109,6 +110,11 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
     # plt.legend()
     predictions_test = model.predict([x_test], batch_size=b_size)
 
+    r_squared = np.zeros(y_test.shape[1])
+    for b in range(y_test.shape[1]):
+        r_squared = coefficient_of_determination(y_test[:,0], predictions_test[:,0])
+
+
     final_model_test_loss = model.evaluate([x_test], y_test, batch_size=b_size, verbose=0)
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
@@ -131,7 +137,8 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
             'opt_type' : opt_type,
             'shuffle_data' : shuffle_data,
             'Train_loss': results.history['loss'],
-            'Val_loss': results.history['val_loss']
+            'Val_loss': results.history['val_loss'],
+            'r_squared': r_squared
         }
 
     if generate_wav is not None:

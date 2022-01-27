@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
+from statistics import mean
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
@@ -89,3 +89,16 @@ class PlotLossesSame:
         self.axs.relim()  # recompute the data limits
         self.axs.autoscale_view()  # automatic axis scaling
         self.fig.canvas.flush_events()
+
+
+def squared_error(ys_orig, ys_pred):
+    return sum((ys_pred - ys_orig) * (ys_pred - ys_orig))
+
+
+def coefficient_of_determination(ys_orig, ys_pred):
+    y_mean_line = [mean(ys_orig) for y in ys_orig]
+    squared_error_regr = squared_error(ys_orig, ys_pred)
+    squared_error_y_mean = squared_error(ys_orig, y_mean_line)
+    return 1 - (squared_error_regr / squared_error_y_mean)
+
+
