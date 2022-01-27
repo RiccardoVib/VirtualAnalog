@@ -11,7 +11,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 #comment
-def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, data=None, **kwargs):
+def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -110,10 +110,9 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
     # plt.legend()
     predictions_test = model.predict([x_test], batch_size=b_size)
 
-    r_squared = np.zeros(y_test.shape[1])
-    for b in range(y_test.shape[1]):
-        r_squared = coefficient_of_determination(y_test[:,0], predictions_test[:,0])
-
+    y_s = np.reshape(y_test, (-1))
+    y_pred = np.reshape(predictions_test,(-1))
+    r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
 
     final_model_test_loss = model.evaluate([x_test], y_test, batch_size=b_size, verbose=0)
     if ckpt_flag:
@@ -192,8 +191,9 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.01, da
 
 if __name__ == '__main__':
     tf.get_logger().setLevel('INFO')
-    data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
     #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = '../../Files'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     trainDense(data_dir=data_dir,
