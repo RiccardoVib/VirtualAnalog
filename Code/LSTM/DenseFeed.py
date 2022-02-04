@@ -139,6 +139,7 @@ def trainDense(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, d
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared
         }
+        print(results)
 
     if generate_wav is not None:
         np.random.seed(seed)
