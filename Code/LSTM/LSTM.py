@@ -7,6 +7,7 @@ import os
 import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from Code.TrainFunctionality import coefficient_of_determination
 from Code.GetData import get_data
 from scipy.io import wavfile
 from scipy import signal
@@ -15,7 +16,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 
-def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwargs):
+def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -32,7 +33,7 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     loss_type = kwargs.get('loss_type', 'mae')
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
@@ -113,8 +114,8 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     #train the RNN
     results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=16, epochs=epochs,
                         validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]),
-                        callbacks=tensorboard_callback)
-                        #callbacks=callbacks)
+                        #callbacks=tensorboard_callback)
+                        callbacks=callbacks)
 
     # #prediction test
     # predictions = []
@@ -136,12 +137,16 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=16)
 
     final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
+    y_s = np.reshape(y_test, (-1))
+    y_pred = np.reshape(predictions_test,(-1))
+    r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
         if best is not None:
             print("Restored weights from {}".format(ckpt_dir))
             model.load_weights(best)
-    test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
+    test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=16, verbose=0)
     print('Test Loss: ', test_loss)
     if inference:
         results = {}
@@ -154,9 +159,9 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
             'learning_rate': learning_rate,
             'encoder_units': encoder_units,
             'decoder_units': decoder_units,
-            'dff_output': dff_output,
             'Train_loss': results.history['loss'],
-            'Val_loss': results.history['val_loss']
+            'Val_loss': results.history['val_loss'],
+            'r_squared': r_squared
         }
 
     if generate_wav is not None:
@@ -210,13 +215,12 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, data=None, **kwarg
     return results
 
 if __name__ == '__main__':
-    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = '../Files'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     #start = time.time()
     trainLSTM(data_dir=data_dir,
-              model_save_dir='../../../TrainedModels',
+              model_save_dir='../../TrainedModels',
               save_folder='LSTM_Testing',
               ckpt_flag=True,
               b_size=16,

@@ -6,7 +6,7 @@ import numpy as np
 from Code.Preprocess import my_scaler
 import math
 
-def get_data(data_dir, shuffle=False, w_length=0.01 ,seed=422):
+def get_data(data_dir, shuffle=False, w_length=0.001 ,seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)

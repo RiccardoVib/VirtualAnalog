@@ -12,11 +12,11 @@ def get_keys_from_value(d, val):
 
 def data_preparation(**kwargs):
     data_dir = '/Users/riccardosimionato/Datasets/VA'
-    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
-    #save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
+    save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     factor = 6#3
     #data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
-    save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
+    #save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
     L = 5349643-100#10699286-100 #32097856#MAX=34435680

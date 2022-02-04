@@ -47,7 +47,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     learning_rate = kwargs.get('learning_rate', None)
     b_size = kwargs.get('b_size', 28)
     num_layers = kwargs.get('num_layers', 4)
-    d_model = kwargs.get('d_model', 128)
+    d_model = kwargs.get('d_model', 1)
     dff = kwargs.get('dff', 512)
     num_heads = kwargs.get('num_heads', 8)
     drop = kwargs.get('drop', .2)
@@ -77,8 +77,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     #@tf.function
     def train_step(inp, tar):
-        tar_inp = tar[:, :-1, :]
-        tar_real = tar[:, 1:, :]
+        tar_inp = tar[:-1]
+        tar_real = tar[1:]
 
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
@@ -92,8 +92,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     @tf.function
     def val_step(inp, tar, testing=False):
-        tar_inp = tar[:, :-1, :]
-        tar_real = tar[:, 1:, :]
+        tar_inp = tar[:-1]
+        tar_real = tar[1:]
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
@@ -168,9 +168,9 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         val_loss.reset_states()
 
         # Get batches
-        x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
-        #x_batches = x
-        #y_batches = y
+        #x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
+        x_batches = x
+        y_batches = y
         # Set-up training progress bar
         n_batch = len(x_batches)
         print("\nepoch {}/{}".format(epoch + 1, epochs))
@@ -427,6 +427,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
 if __name__ == '__main__':
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
+    data_dir = '../Files'
 
     data = get_data(data_dir, seed=422)
     train_RAMT(
