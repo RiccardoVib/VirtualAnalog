@@ -31,7 +31,7 @@ def plot_spectral(Zxx, title, save_dir=None):
 def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # Get the data:
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=False, w_length=0.01)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=False, w_length=0.001)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
@@ -51,7 +51,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     dff = kwargs.get('dff', 512)
     num_heads = kwargs.get('num_heads', 8)
     drop = kwargs.get('drop', .2)
-    output_dim = x.shape[-1]
+    #output_dim = x.shape[-1]
+    output_dim = 1
     if learning_rate is None:
         learning_rate = CustomSchedule(d_model=d_model, warmup_steps=4000)
     opt = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
@@ -77,13 +78,13 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     #@tf.function
     def train_step(inp, tar):
-        tar_inp = tar[:-1]
-        tar_real = tar[1:]
+        tar_inp = tar[:, :-1]
+        tar_real = tar[:, 1:]
 
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
 
-            loss = loss_fn(tar_real, predictions[:, :, 0]) #TODO: dimensioni sbagliate
+            loss = loss_fn(tar_real, predictions[0, :, 0]) #TODO: dimensioni sbagliate
 
         gradients = tape.gradient(loss, transformer.trainable_variables)
         opt.apply_gradients(zip(gradients, transformer.trainable_variables))
@@ -92,12 +93,12 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     @tf.function
     def val_step(inp, tar, testing=False):
-        tar_inp = tar[:-1]
-        tar_real = tar[1:]
+        tar_inp = tar[:, :-1]
+        tar_real = tar[:, 1:]
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
-        loss = loss_fn(tar_real, predictions)
+        loss = loss_fn(tar_real, predictions[0, :, 0])
 
         if not testing:
             val_loss.update_state(loss)
@@ -118,7 +119,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         @tf.function(input_signature=graph_signature)
         def inference(tar, inp):
-            tar_inp = tar[:-1]
+            tar_inp = tar[:,:-1]
 
             outputs = transformer([inp, tar_inp], training=False)
             return outputs
@@ -169,16 +170,16 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         # Get batches
         #x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
-        x_batches = x
+        x_batches = x[:,:,0]
         y_batches = y
         # Set-up training progress bar
         n_batch = len(x_batches)
         print("\nepoch {}/{}".format(epoch + 1, epochs))
         pb_i = Progbar(n_batch * b_size, stateful_metrics=['Loss: '])
 
-        for batch_num in range(len(x_batches)):#.shape[0]):
-            x_batch = x_batches[batch_num]
-            y_batch = y_batches[batch_num]
+        for batch_num in range(len(x_batches)):
+            x_batch = x_batches[batch_num*b_size:batch_num*b_size+b_size]
+            y_batch = y_batches[batch_num*b_size:batch_num*b_size+b_size]
 
             x_batch = tf.constant(x_batch, dtype='float32')
             y_batch = tf.constant(y_batch, dtype='float32')
@@ -195,12 +196,11 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # -------------------------------------------------------------------------------------------------------------
 
         # Get batches
-        x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
-        #x_batches, y_batches = x_val, y_val
-        #for batch_num in range(x_batches.shape[0]):
+        #x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
+        x_batches, y_batches = x_val[:,:,0], y_val
         for batch_num in range(len(x_batches)):
-            x_batch = x_batches[batch_num]
-            y_batch = y_batches[batch_num]
+            x_batch = x_batches[batch_num*b_size:batch_num*b_size+b_size]
+            y_batch = y_batches[batch_num*b_size:batch_num*b_size+b_size]
 
             x_batch = tf.constant(x_batch, dtype='float32')
             y_batch = tf.constant(y_batch, dtype='float32')
@@ -437,7 +437,7 @@ if __name__ == '__main__':
         save_folder='Transformer_TESTING',
         ckpt_flag=True,
         plot_progress=True,
-        b_size=28,
+        b_size=128,
         num_layers=2,
         d_model=32,
         dff=32,
@@ -445,5 +445,5 @@ if __name__ == '__main__':
         drop=0.1,
         epochs=1,
         seed=422,
-        generate_wav=10)
+        generate_wav=5)
 

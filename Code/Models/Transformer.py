@@ -211,6 +211,7 @@ class Decoder(tf.keras.layers.Layer):
 
     def call(self, x, enc_output, training, look_ahead_mask, padding_mask):
         seq_len = tf.shape(x)[1]
+        #seq_len = tf.shape(x)[0]
         attention_weights = {}      # (batch_size, target_seq_len, 1) --> (
 
         x = tf.expand_dims(x, -1)
@@ -270,9 +271,9 @@ class Transformer(tf.keras.Model):
         # Used in the 1st attention block in the decoder.
         # It is used to pad and mask future tokens in the input received by
         # the decoder.
-        #look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[1])
+        look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[1])
         #n
-        look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[0])
+        #look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[0])
         # dec_target_padding_mask = create_padding_mask(tar)
         # look_ahead_mask = tf.maximum(dec_target_padding_mask, look_ahead_mask)
 
