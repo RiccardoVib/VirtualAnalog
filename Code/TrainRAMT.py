@@ -84,7 +84,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         with tf.GradientTape() as tape:
             predictions, _ = transformer([inp, tar_inp], training=True)
 
-            loss = loss_fn(tar_real, predictions[0, :, 0]) #TODO: dimensioni sbagliate
+            loss = loss_fn(tar_real, predictions[:, :, 0]) #TODO: dimensioni sbagliate
 
         gradients = tape.gradient(loss, transformer.trainable_variables)
         opt.apply_gradients(zip(gradients, transformer.trainable_variables))
@@ -98,7 +98,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
-        loss = loss_fn(tar_real, predictions[0, :, 0])
+        loss = loss_fn(tar_real, predictions[:, :, 0])
 
         if not testing:
             val_loss.update_state(loss)
