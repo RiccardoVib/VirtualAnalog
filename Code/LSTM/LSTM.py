@@ -32,6 +32,8 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
     inference = kwargs.get('inference', False)
     loss_type = kwargs.get('loss_type', 'mae')
 
+    encoder_units_ = encoder_units
+    decoder_units_ = decoder_units
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
@@ -112,7 +114,7 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
 
 
     #train the RNN
-    results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=16, epochs=epochs,
+    results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=b_size, epochs=epochs,
                         validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]),
                         #callbacks=tensorboard_callback)
                         callbacks=callbacks)
@@ -134,7 +136,7 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
     # plt.plot(y_test, label='forecast target')
     # plt.plot(predictions, label='forecast prediction')
     # plt.legend()
-    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=16)
+    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
 
     final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     y_s = np.reshape(y_test, (-1))
@@ -157,8 +159,8 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
             'Min_train_loss': np.min(results.history['loss']),
             'b_size': b_size,
             'learning_rate': learning_rate,
-            'encoder_units': encoder_units,
-            'decoder_units': decoder_units,
+            'encoder_units': encoder_units_,
+            'decoder_units': decoder_units_,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared
@@ -216,15 +218,15 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
     return results
 
 if __name__ == '__main__':
-    data_dir = '../Files'
+    data_dir = '../../Files'
     seed = 422
     data = get_data(data_dir=data_dir, seed=seed)
     #start = time.time()
     trainLSTM(data_dir=data_dir,
-              model_save_dir='../../TrainedModels',
+              model_save_dir='../../../TrainedModels',
               save_folder='LSTM_Testing',
               ckpt_flag=True,
-              b_size=16,
+              b_size=128,
               learning_rate=0.0001,
               encoder_units=[3, 2],
               decoder_units=[2, 2],
