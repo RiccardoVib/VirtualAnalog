@@ -16,7 +16,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
 
-def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, data=None, **kwargs):
+def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
@@ -31,11 +31,15 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
     opt_type = kwargs.get('opt_type', 'Adam')
     inference = kwargs.get('inference', False)
     loss_type = kwargs.get('loss_type', 'mae')
+    shuffle_data = kwargs.get('shuffle_data', False)
+    w_length = kwargs.get('w_length', 0.001)
+    n_record = kwargs.get('n_record', 1)
 
     encoder_units_ = encoder_units
     decoder_units_ = decoder_units
+
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, batch_size=b_size, shuffle=shuffle_data, w_length=w_length, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
@@ -220,7 +224,6 @@ def trainLSTM(data_dir, epochs, seed=422, shuffle_data=False, w_length=0.001, da
 if __name__ == '__main__':
     data_dir = '../../Files'
     seed = 422
-    data = get_data(data_dir=data_dir, seed=seed)
     #start = time.time()
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../../TrainedModels',
@@ -231,8 +234,8 @@ if __name__ == '__main__':
               encoder_units=[3, 2],
               decoder_units=[2, 2],
               epochs=1,
-              data=data,
               generate_wav=2,
+              n_record=1,
               shuffle_data=False)
     #end = time.time()
     #print(end - start)
