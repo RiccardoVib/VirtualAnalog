@@ -205,7 +205,7 @@ if __name__ == '__main__':
               ckpt_flag=True,
               b_size=16,
               learning_rate=0.0001,
-              first_unit=[2, 2],
+              units=[2, 2],
               epochs=1,
               n_record=1,
               generate_wav=2,
