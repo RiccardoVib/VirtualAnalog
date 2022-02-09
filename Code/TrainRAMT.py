@@ -29,11 +29,6 @@ def plot_spectral(Zxx, title, save_dir=None):
 
 
 def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
-    # Get the data:
-    if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
-    else:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     # -----------------------------------------------------------------------------------------------------------------
     # Set-up model, optimiser, lr_sched and losses:
@@ -43,7 +38,6 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     generate_wav = kwargs.get('generate_wav', None)
     ckpt_flag = kwargs.get('ckpt_flag', False)
     plot_progress = kwargs.get('plot_progress', True)
-    max_length = x.shape[1]
     learning_rate = kwargs.get('learning_rate', None)
     b_size = kwargs.get('b_size', 28)
     num_layers = kwargs.get('num_layers', 4)
@@ -55,6 +49,15 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     w_length = kwargs.get('w_length', 0.001)
     n_record = kwargs.get('n_record', 1)
 
+    # Get the data:
+    if data is None:
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record,
+                                                                          shuffle=shuffle_data, w_length=w_length,
+                                                                          seed=seed)
+    else:
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
+
+    max_length = x.shape[1]
     #output_dim = x.shape[-1]
     output_dim = 1
     if learning_rate is None:

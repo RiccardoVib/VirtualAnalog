@@ -4,7 +4,6 @@ import os
 import tensorflow as tf
 import numpy as np
 from Code.Preprocess import my_scaler
-import math
 
 def get_data(data_dir, n_record, shuffle, w_length,seed=422):
     np.random.seed(seed)
