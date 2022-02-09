@@ -31,7 +31,7 @@ def plot_spectral(Zxx, title, save_dir=None):
 def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # Get the data:
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, seed=seed, shuffle=False, w_length=0.001)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
@@ -51,6 +51,10 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     dff = kwargs.get('dff', 512)
     num_heads = kwargs.get('num_heads', 8)
     drop = kwargs.get('drop', .2)
+    shuffle_data = kwargs.get('shuffle_data', False)
+    w_length = kwargs.get('w_length', 0.001)
+    n_record = kwargs.get('n_record', 1)
+
     #output_dim = x.shape[-1]
     output_dim = 1
     if learning_rate is None:
@@ -429,10 +433,8 @@ if __name__ == '__main__':
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
     data_dir = '../Files'
 
-    data = get_data(data_dir, seed=422)
     train_RAMT(
         data_dir=data_dir,
-        data=data,
         model_save_dir='../../Transformer_TrainedModels',
         save_folder='Transformer_TESTING',
         ckpt_flag=True,
@@ -445,5 +447,8 @@ if __name__ == '__main__':
         drop=0.1,
         epochs=1,
         seed=422,
+        shuffle_data=False,
+        n_record=1,
+        w_length=0.001,
         generate_wav=5)
 
