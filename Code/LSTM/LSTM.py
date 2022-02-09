@@ -236,6 +236,7 @@ if __name__ == '__main__':
               epochs=1,
               generate_wav=2,
               n_record=1,
+              w_length=0.001,
               shuffle_data=False)
     #end = time.time()
     #print(end - start)

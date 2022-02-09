@@ -209,4 +209,5 @@ if __name__ == '__main__':
               epochs=1,
               n_record=1,
               generate_wav=2,
+              w_length=0.001,
               shuffle_data=False)
