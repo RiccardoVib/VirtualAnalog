@@ -1,13 +1,9 @@
-import tensorboard
-#load_ext tensorboard
-#rm -rf ./logs/
 import datetime
 import numpy as np
 import os
-import time
 import tensorflow as tf
-from TrainFunctionality import coefficient_of_determination
-from GetData import get_data
+from Code.TrainFunctionality import coefficient_of_determination
+from GetData_piano import get_data_piano
 from scipy.io import wavfile
 from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow.keras.models import Model
@@ -16,7 +12,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
-    b_size = kwargs.get('b_size', 16)
+    b_size = kwargs.get('b_size', 32)
     learning_rate = kwargs.get('learning_rate', 0.001)
     encoder_units = kwargs.get('encoder_units', [8, 8])
     decoder_units = kwargs.get('decoder_units', [8, 8])
@@ -31,21 +27,20 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     loss_type = kwargs.get('loss_type', 'mae')
     shuffle_data = kwargs.get('shuffle_data', False)
     w_length = kwargs.get('w_length', 0.001)
-    n_record = kwargs.get('n_record', 1)
 
     encoder_units_ = encoder_units
     decoder_units_ = decoder_units
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data_piano(data_dir, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     #T past values used to predict the next value
     T = x.shape[1] #time window
-    D = x.shape[2]
 
-    encoder_inputs = Input(shape=(T,D), name='enc_input')
+
+    encoder_inputs = Input(shape=(T,1), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
@@ -176,9 +171,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         y_gen = y_test
         predictions = model.predict([x_gen, y_gen[:, :-1]])
         print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
-        predictions = scaler[0].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
-        y_gen = scaler[0].inverse_transform(y_gen)
+        predictions = scaler.inverse_transform(predictions)
+        x_gen = scaler.inverse_transform(x_gen)
+        y_gen = scaler.inverse_transform(y_gen)
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
@@ -186,9 +181,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
         for i, indx in enumerate(gen_indxs):
             # Define directories
-            pred_name = '_pred.wav'
-            inp_name = '_inp.wav'
-            tar_name = '_tar.wav'
+            pred_name = 'piano_pred.wav'
+            inp_name = 'piano_inp.wav'
+            tar_name = 'piano_tar.wav'
 
             pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
             inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
@@ -220,9 +215,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     return results
 
 if __name__ == '__main__':
-    data_dir = '../Files'
+    data_dir = '../../Files'
     seed = 422
-    #start = time.time()
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../TrainedModels',
               save_folder='LSTM_Testing',
@@ -236,5 +230,3 @@ if __name__ == '__main__':
               n_record=1,
               w_length=0.001,
               shuffle_data=False)
-    #end = time.time()
-    #print(end - start)

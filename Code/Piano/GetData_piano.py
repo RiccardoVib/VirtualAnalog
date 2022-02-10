@@ -3,9 +3,10 @@ import random
 import os
 import tensorflow as tf
 import numpy as np
-from Preprocess import my_scaler
+from Code.Preprocess import my_scaler
 
-def get_data(data_dir, n_record, shuffle, w_length,seed=422):
+
+def get_data_piano(data_dir, shuffle, w_length, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -14,21 +15,14 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'piano_data.pickle'])), 'rb')
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']
-
     inp = np.array(inp, dtype=np.float32)
     tar = np.array(tar, dtype=np.float32)
-    Z = [inp, tar]
-    Z = np.array(Z)
-
-    M = pickle.load(meta)
-    ratios = M['ratio']
-    threshold = M['threshold']
-    fs = M['samplerate']
+    Z = [inp.T, tar.T]
+    Z = np.array(Z)[:,:,0]
 
     # -----------------------------------------------------------------------------------------------------------------
     # Scale data to be within (0, 1)
@@ -39,40 +33,22 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
 
     inp = scaler.transform(inp)
     tar = scaler.transform(tar)
+    zero_value = (0 - scaler.min_data) / (scaler.max_data - scaler.min_data)
 
-    ratios = np.array(ratios, dtype=np.float32)
-    thresholds = np.array(threshold, dtype=np.float32)
-
-    scaler = my_scaler()
-    scaler_ratios = my_scaler()
-    scaler_threshold = my_scaler()
-
-    scaler_ratios.fit(ratios)
-    scaler_threshold.fit(thresholds)
-    thresholds = scaler_threshold.transform(thresholds)
-    ratios = scaler_ratios.transform(ratios)
-
-    zero_value = (0 - scaler.min_data)/(scaler.max_data - scaler.min_data)
-    zero_value_ratio = (0 - scaler_ratios.min_data) / (scaler_ratios.max_data - scaler_ratios.min_data)
-    zero_value_threshold = (0 - scaler_threshold.min_data) / (scaler_threshold.max_data - scaler_threshold.min_data)
-    zero_value = [zero_value, zero_value_ratio, zero_value_threshold]
-    scaler = [scaler, scaler_ratios, scaler_threshold]
     # -----------------------------------------------------------------------------------------------------------------
     # Shuffle indexing matrix and and split into test, train validation
     # -----------------------------------------------------------------------------------------------------------------
 
     x, y, x_val, y_val, x_test, y_test = [], [], [], [], [], []
 
-    window = int(fs * w_length)
-    all_inp, all_tar, r, thre = [], [],  [], []
+    window = int(16000 * w_length)
+    all_inp, all_tar = [], []
 
-    for i in range(n_record):
-        for t in range(inp.shape[1]//window):
-
-            inp_temp = np.array([inp[i, t * window:t * window + window], np.repeat(ratios[i], window)])
-            all_inp.append(inp_temp.T)
-            tar_temp = np.array(tar[i, t*window:t*window + window])
-            all_tar.append(tar_temp.T)
+    for t in range(inp.shape[1] // window):
+        inp_temp = np.array(inp[0, t * window:t * window + window])
+        all_inp.append(inp_temp.T)
+        tar_temp = np.array(tar[0, t * window:t * window + window])
+        all_tar.append(tar_temp.T)
 
     all_inp = np.array(all_inp)
     all_tar = np.array(all_tar)
@@ -87,8 +63,8 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
         np.random.shuffle(matrix)
 
     N = all_inp.shape[0]
-    n_train = N//100*70
-    n_val = (N-n_train)//2
+    n_train = N // 100 * 70
+    n_val = (N - n_train) // 2
 
     for n in range(n_train):
         x.append(matrix[n][0])
