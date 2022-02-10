@@ -1,12 +1,11 @@
-from Code.GetData import get_data
+from GetData import get_data
 import os
 import tensorflow as tf
 import numpy as np
 import pickle
 from scipy.io import wavfile
-from scipy import signal
-from Code.Models import Transformer
-from Code.TrainFunctionality import CustomSchedule, get_batches, PlotLossesSame
+import Transformer
+from TrainFunctionality import CustomSchedule, PlotLossesSame
 from tensorflow.keras.utils import Progbar
 import matplotlib.pyplot as plt
 

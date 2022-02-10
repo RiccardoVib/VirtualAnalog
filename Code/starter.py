@@ -1,6 +1,6 @@
-from Code.LSTM.LSTM import trainLSTM
-from Code.LSTM.DenseFeed import trainDense
-from Code.GetData import get_data
+from LSTM import trainLSTM
+from DenseFeed import trainDense
+from GetData import get_data
 
 if __name__ == '__main__':
     #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'

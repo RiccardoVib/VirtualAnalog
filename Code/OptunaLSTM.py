@@ -1,11 +1,7 @@
 import optuna
-from Code.LSTM.LSTM import trainLSTM
-import joblib
-import matplotlib.pyplot as plt
+from LSTM import trainLSTM
 import seaborn as sns
 import numpy as np
-import pandas as pd
-import os
 
 N_TRIALS = 1000
 save_dir = r'C:/Users/riccarsi/Documents/GitHub/OptunaStudy/study_LSTM.pkl'

@@ -1,17 +1,13 @@
 import optuna
-from Code.LSTM.DenseFeed import trainDense
-import joblib
-import matplotlib.pyplot as plt
+from DenseFeed import trainDense
 import seaborn as sns
 import numpy as np
-import pandas as pd
-import os
 
 N_TRIALS = 1
 #save_dir = r'C:/Users/riccarsi/Documents/GitHub/OptunaStudy/study_Dense.pkl'
 #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
 save_dir = r'../../Files/study_Dense.pkl'
-data_dir = '../../Files'
+data_dir = '../Files'
 epochs = 1
 seed = 422
 

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from Code.Preprocess import positional_encoding, create_look_ahead_mask
+from Preprocess import positional_encoding, create_look_ahead_mask
 
 
 def scaled_dot_product_attention(q, k, v, mask):
