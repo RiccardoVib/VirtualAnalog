@@ -203,7 +203,6 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # -------------------------------------------------------------------------------------------------------------
 
         # Get batches
-        #x_batches, y_batches = get_batches(x_val, y_val, b_size=b_size, shuffle=True, seed=epoch)
         x_batches, y_batches = x_val[:,:,0], y_val
         for batch_num in range(len(x_batches)):
             x_batch = x_batches[batch_num*b_size:batch_num*b_size+b_size]
@@ -277,136 +276,127 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     # Test the model
     # -----------------------------------------------------------------------------------------------------------------
-    # # Load the best model:
-    # if ckpt_flag:
-    #     if os.path.exists(save_model_best):
-    #         f = open('/'.join([os.path.dirname(save_model_best), 'epoch.txt']))
-    #         ckpt_info = f.read()
-    #         f.close()
-    #         start_epoch = [int(s) for s in ckpt_info.split() if s.isdigit()][1]  # Get the latest epoch it trained
-    #         print('Loading weights from best epoch ', start_epoch)
-    #         loaded = tf.saved_model.load(save_model_best)
-    #
-    #         # Need to make a single prediction for the model as it needs to compile:
-    #         transformer([tf.constant(x[:2], dtype='float32'),
-    #                      tf.constant(y[:2][:, :-1, :], dtype='float32')],
-    #                     training=False)
-    #         for i in range(len(transformer.variables)):
-    #             if transformer.variables[i].name != loaded.all_variables[i].name:
-    #                 assert ValueError('Cannot load model, due to incompatible loaded and model...')
-    #             transformer.variables[i].assign(loaded.all_variables[i].value())
-    #
-    # if 'n_params' not in locals():
-    #     n_params = np.sum([np.prod(v.get_shape()) for v in transformer.variables])
-    # if 'epoch' not in locals():
-    #     _logs = [[0]]*len(_logs)
-    #     epoch = 0
-    #
-    # # Get batches
-    # x_batches, y_batches = get_batches(x_test, y_test, b_size=b_size, shuffle=False)
-    # for (batch_num, (x_batch_i, y_batch_i)) in enumerate(zip(x_batches, y_batches)):
-    #     x_batch = Z[x_batch_i]
-    #     y_batch = Z[y_batch_i]
-    #
-    #     x_batch = tf.constant(x_batch, dtype='float32')
-    #     y_batch = tf.constant(y_batch, dtype='float32')
-    #
-    #     val_step(inp=x_batch, tar=y_batch, testing=True)
-    #
-    # print('\n\nTest Loss: ', test_loss.result().numpy())
-    # print('    Thres: ', test_loss_thres.result().numpy())
-    # print('  SmThres: ', test_loss_sthres.result().numpy())
-    # print('    MAE:   ', test_loss_mae.result().numpy(), '\n\n')
-    #
-    #
-    # results = {
-    #     'Test_Loss': test_loss.result().numpy(),
-    #     'Test_Loss_Thres': test_loss_thres.result().numpy(),
-    #     'Test_Loss_MAE': test_loss_mae.result().numpy(),
-    #     'b_size': b_size,
-    #     'num_layers': num_layers,
-    #     'd_model': d_model,
-    #     'dff': dff,
-    #     'num_heads': num_heads,
-    #     'drop': drop,
-    #     'n_params': n_params,
-    #     'learning_rate': learning_rate if isinstance(learning_rate, float) else 'Sched',
-    #     'min_val_loss': np.min(_logs[1]),
-    #     'min_train_loss': np.min(_logs[0]),
-    #     'val_loss': _logs[1],
-    #     'val_loss_thres': _logs[2],
-    #     'val_loss_sthres': _logs[3],
-    #     'val_loss_mae': _logs[4],
-    #     'train_loss': _logs[0],
-    # }
+    # Load the best model:
+    if ckpt_flag:
+        if os.path.exists(save_model_best):
+            f = open('/'.join([os.path.dirname(save_model_best), 'epoch.txt']))
+            ckpt_info = f.read()
+            f.close()
+            start_epoch = [int(s) for s in ckpt_info.split() if s.isdigit()][1]  # Get the latest epoch it trained
+            print('Loading weights from best epoch ', start_epoch)
+            loaded = tf.saved_model.load(save_model_best)
 
-    # if ckpt_flag:
-    #     with open(os.path.normpath('/'.join([model_save_dir, save_folder, 'results.txt'])), 'w') as f:
-    #         for key, value in results.items():
-    #             print('\n', key, '  : ', value, file=f)
+            # Need to make a single prediction for the model as it needs to compile:
+            transformer([tf.constant(x[:2], dtype='float32'),
+                         tf.constant(y[:2][:, :-1, :], dtype='float32')],
+                        training=False)
+            for i in range(len(transformer.variables)):
+                if transformer.variables[i].name != loaded.all_variables[i].name:
+                    assert ValueError('Cannot load model, due to incompatible loaded and model...')
+                transformer.variables[i].assign(loaded.all_variables[i].value())
+
+    if 'n_params' not in locals():
+        n_params = np.sum([np.prod(v.get_shape()) for v in transformer.variables])
+    if 'epoch' not in locals():
+        _logs = [[0]]*len(_logs)
+        epoch = 0
+
+    # Get batches
+    x_batches, y_batches = x_test[:, :, 0], y_test
+    for batch_num in range(len(x_batches)):
+        x_batch = x_batches[batch_num * b_size:batch_num * b_size + b_size]
+        y_batch = y_batches[batch_num * b_size:batch_num * b_size + b_size]
+
+        x_batch = tf.constant(x_batch, dtype='float32')
+        y_batch = tf.constant(y_batch, dtype='float32')
+
+        val_step(inp=x_batch, tar=y_batch, testing=True)
+
+    print('\n\nTest Loss: ', test_loss.result().numpy())
+
+    results = {
+        'Test_Loss': test_loss.result().numpy(),
+        'b_size': b_size,
+        'num_layers': num_layers,
+        'd_model': d_model,
+        'dff': dff,
+        'num_heads': num_heads,
+        'drop': drop,
+        'n_params': n_params,
+        'learning_rate': learning_rate if isinstance(learning_rate, float) else 'Sched',
+        'min_val_loss': np.min(_logs[1]),
+        'min_train_loss': np.min(_logs[0]),
+        'val_loss': _logs[1],
+        'train_loss': _logs[0],
+    }
+
+    if ckpt_flag:
+        with open(os.path.normpath('/'.join([model_save_dir, save_folder, 'results.txt'])), 'w') as f:
+            for key, value in results.items():
+                print('\n', key, '  : ', value, file=f)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Save some Wav-file Predictions (from test set):
     # -----------------------------------------------------------------------------------------------------------------
     # TODO: Add filename instead of indices in saved name.. Also save losses.
     # TODO: Do this for the longformer as well...
-    # if generate_wav is not None:
-    #     np.random.seed(seed)
-    #     gen_indxs = np.random.choice(len(y_test), generate_wav)
-    #     x_gen = Z[x_test[gen_indxs]]
-    #     y_gen = Z[y_test[gen_indxs]]
-    #     predictions, _ = transformer([
-    #         tf.constant(x_gen, dtype='float32'),
-    #         tf.constant(y_gen[:, :-1, :], dtype='float32')],
-    #         training=False)
-    #     predictions = predictions.numpy()
-    #     losses = [loss_fn(lab, pred).numpy() for (lab, pred) in zip(y_gen[:,1:,:], predictions)]
-    #     predictions = scaler.inverse_transform(predictions)
-    #     x_gen = scaler.inverse_transform(x_gen)
-    #     y_gen = scaler.inverse_transform(y_gen)
-    #     for i, indx in enumerate(gen_indxs):
-    #         # Define directories
-    #         pred_name = 'x' + str(x_test[gen_indxs][i]) + '_y' + str(y_test[gen_indxs][i]) + '_pred.wav'
-    #         inp_name = 'x' + str(x_test[gen_indxs][i]) + '_y' + str(y_test[gen_indxs][i]) + '_inp.wav'
-    #         tar_name = 'x' + str(x_test[gen_indxs][i]) + '_y' + str(y_test[gen_indxs][i]) + '_tar.wav'
-    #
-    #         pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
-    #         inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
-    #         tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
-    #
-    #         if not os.path.exists(os.path.dirname(pred_dir)):
-    #             os.makedirs(os.path.dirname(pred_dir))
-    #
-    #         # Save some Spectral Plots:
-    #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
-    #         if not os.path.exists(spectral_dir):
-    #             os.makedirs(spectral_dir)
-    #         plot_spectral(Zxx=predictions[i], title='Predictions',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=x_gen[i], title='Inputs',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=y_gen[i], title='Target',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
-    #
-    #         # Inverse STFT
-    #         _, pred_i = signal.istft(predictions[i].T, nperseg=indeces['nperseg_i'], nfft=indeces['nfft'])
-    #         _, inp_i = signal.istft(x_gen[i].T, nperseg=indeces['nperseg_i'], nfft=indeces['nfft'])
-    #         _, tar_i = signal.istft(y_gen[i].T, nperseg=indeces['nperseg_i'], nfft=indeces['nfft'])
-    #
-    #         # Resample
-    #         pred_i = signal.resample_poly(pred_i, up=44100 // indeces['samplerate'], down=1)
-    #         pred_i = pred_i.astype('int16')
-    #         inp_i = signal.resample_poly(inp_i, up=44100 // indeces['samplerate'], down=1)
-    #         inp_i = inp_i.astype('int16')
-    #         tar_i = signal.resample_poly(tar_i, up=44100 // indeces['samplerate'], down=1)
-    #         tar_i = tar_i.astype('int16')
-    #
-    #         # Save Wav files
-    #         wavfile.write(pred_dir, 44100, pred_i)
-    #         wavfile.write(inp_dir, 44100, inp_i)
-    #         wavfile.write(tar_dir, 44100, tar_i)
-    #
-    # return results
+    if generate_wav is not None:
+
+        np.random.seed(seed)
+        gen_indxs = np.random.choice(len(y_test), generate_wav)
+        x_gen = x_test
+        y_gen = y_test
+        predictions, _ = transformer([
+            tf.constant(x_gen, dtype='float32'),
+            tf.constant(y_gen[:, :-1], dtype='float32')],
+            training=False)
+        predictions = predictions.numpy()
+        #losses = [loss_fn(lab, pred).numpy() for (lab, pred) in zip(y_gen[:,1:,:], predictions)]
+
+        predictions = scaler[0].inverse_transform(predictions)
+        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
+        y_gen = scaler[0].inverse_transform(y_gen)
+
+        predictions = predictions.reshape(-1)
+        x_gen = x_gen.reshape(-1)
+        y_gen = y_gen.reshape(-1)
+
+
+
+        for i, indx in enumerate(gen_indxs):
+            # Define directories
+            pred_name = '_pred.wav'
+            inp_name = '_inp.wav'
+            tar_name = '_tar.wav'
+
+            pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
+            inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
+            tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
+
+            if not os.path.exists(os.path.dirname(pred_dir)):
+                os.makedirs(os.path.dirname(pred_dir))
+
+            # Save Wav files
+            predictions = predictions.astype('int16')
+            x_gen = x_gen.astype('int16')
+            y_gen = y_gen.astype('int16')
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
+
+            # # Save some Spectral Plots:
+            # spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
+            # if not os.path.exists(spectral_dir):
+            #     os.makedirs(spectral_dir)
+            # plot_spectral(Zxx=predictions[i], title='Predictions',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
+            # plot_spectral(Zxx=x_gen[i], title='Inputs',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
+            # plot_spectral(Zxx=y_gen[i], title='Target',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
+
+
+    return results
 
     # # TODO: Sort this out for proper training (i.e. not for a single sample as here... )
     # predictions, _ = transformer([x_batch, y_batch[:, :-1, :]], training=False)

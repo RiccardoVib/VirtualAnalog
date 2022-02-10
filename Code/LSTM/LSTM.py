@@ -178,7 +178,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         y_gen = y_test
         predictions = model.predict([x_gen, y_gen[:, :-1]])
         print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
-        predictions = scaler[1].inverse_transform(predictions)
+        predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
         y_gen = scaler[0].inverse_transform(y_gen)
 
