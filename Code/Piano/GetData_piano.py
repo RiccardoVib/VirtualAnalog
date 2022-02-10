@@ -15,7 +15,7 @@ def get_data_piano(data_dir, shuffle, w_length, seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-    file_data = open(os.path.normpath('/'.join([data_dir, 'piano_data.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'piano_data_imp.pickle'])), 'rb')
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']

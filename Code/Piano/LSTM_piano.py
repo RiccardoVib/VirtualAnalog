@@ -133,12 +133,16 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     # plt.plot(y_test, label='forecast target')
     # plt.plot(predictions, label='forecast prediction')
     # plt.legend()
+    #predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
+    x_test = x
+    y_test = y
     predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
 
     final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     y_s = np.reshape(y_test, (-1))
     y_pred = np.reshape(predictions_test,(-1))
-    r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+    #r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+    r_squared = 0
 
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
@@ -218,12 +222,12 @@ if __name__ == '__main__':
     data_dir = '../../Files'
     seed = 422
     trainLSTM(data_dir=data_dir,
-              model_save_dir='../../TrainedModels',
-              save_folder='LSTM_Testing',
+              model_save_dir='../../TrainedModels_imp',
+              save_folder='LSTM_Testing_imp',
               ckpt_flag=True,
               b_size=32,
               learning_rate=0.0001,
-              encoder_units=[3, 2],
+              encoder_units=[2, 2],
               decoder_units=[2, 2],
               epochs=50,
               generate_wav=2,
