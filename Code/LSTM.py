@@ -150,7 +150,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         if best is not None:
             print("Restored weights from {}".format(ckpt_dir))
             model.load_weights(best)
-    test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=16, verbose=0)
+    test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
     if inference:
         results = {}
