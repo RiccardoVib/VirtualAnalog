@@ -8,7 +8,8 @@ import Transformer
 from TrainFunctionality import CustomSchedule, PlotLossesSame
 from tensorflow.keras.utils import Progbar
 import matplotlib.pyplot as plt
-
+from TrainFunctionality import coefficient_of_determination
+import pandas as pd
 
 def plot_spectral(Zxx, title, save_dir=None):
     fig, axs = plt.subplots()
@@ -143,8 +144,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
             loaded = tf.saved_model.load(save_model_latest)
 
             # Need to make a single prediction for the model as it needs to compile:
-            transformer([tf.costant(x[:2], dtype='float32'),
-                         tf.constant(y[:2,:-1,:], dtype='float32')],
+            transformer([tf.constant(x[:2], dtype='float32'),
+                         tf.constant(y[:2,:-1], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -175,7 +176,6 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         val_loss.reset_states()
 
         # Get batches
-        #x_batches, y_batches = get_batches(x, y, b_size=b_size, shuffle=True, seed=epoch)
         x_batches = x[:,:,0]
         y_batches = y
         # Set-up training progress bar
@@ -286,8 +286,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
             loaded = tf.saved_model.load(save_model_best)
 
             # Need to make a single prediction for the model as it needs to compile:
-            transformer([tf.constant(x[:2], dtype='float32'),
-                         tf.constant(y[:2][:, :-1, :], dtype='float32')],
+            transformer([tf.constant(x[:2, :, 0], dtype='float32'),
+                         tf.constant(y[:2, :-1], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -313,6 +313,13 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     print('\n\nTest Loss: ', test_loss.result().numpy())
 
+    predictions, _ = transformer([tf.constant(x_test[:, : ,0], dtype='float32'), tf.constant(y_test[:, :-1], dtype='float32')], training=False)
+    predictions = predictions.numpy()
+
+    y_s = np.reshape(y_test, (-1))
+    y_pred = np.reshape(predictions, (-1))
+    r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+
     results = {
         'Test_Loss': test_loss.result().numpy(),
         'b_size': b_size,
@@ -327,7 +334,10 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         'min_train_loss': np.min(_logs[0]),
         'val_loss': _logs[1],
         'train_loss': _logs[0],
+        'r_squared': r_squared
     }
+
+    print(results)
 
     if ckpt_flag:
         with open(os.path.normpath('/'.join([model_save_dir, save_folder, 'results.txt'])), 'w') as f:
@@ -364,9 +374,9 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         for i, indx in enumerate(gen_indxs):
             # Define directories
-            pred_name = '_pred.wav'
-            inp_name = '_inp.wav'
-            tar_name = '_tar.wav'
+            pred_name = 'Transformer_pred.wav'
+            inp_name = 'Transformer_inp.wav'
+            tar_name = 'Transformer_tar.wav'
 
             pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
             inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
@@ -443,4 +453,3 @@ if __name__ == '__main__':
         n_record=1,
         w_length=0.001,
         generate_wav=5)
-

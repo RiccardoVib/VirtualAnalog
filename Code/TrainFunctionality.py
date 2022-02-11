@@ -102,3 +102,10 @@ def coefficient_of_determination(ys_orig, ys_pred):
     return 1 - (squared_error_regr / squared_error_y_mean)
 
 
+def error_to_signal_ratio(ys_orig, ys_pred):
+    num, den = 0,0
+    for n in range(len(ys_orig)):
+        num += (ys_orig[n] - ys_pred[n])**2
+        den += ys_orig[n]**2
+    return np.divide(num,den)
+

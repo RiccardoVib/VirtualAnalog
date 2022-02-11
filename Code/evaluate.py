@@ -5,16 +5,17 @@ from scipy import fft
 import os
 import glob
 import matplotlib.pyplot as plt
+from TrainFunctionality import error_to_signal_ratio
 
 #data_dir_dense = 'C:/Users/riccarsi/Documents/GitHub/Results/DenseFeed_Testing/WavPredictions'
 data_dir_dense = '/Users/riccardosimionato/PycharmProjects/TrainedModels/Dense_Testing/WavPredictions'
 #data_dir_LSTM = 'C:/Users/riccarsi/Documents/GitHub/Results/LSTM2_Testing/WavPredictions'
-data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/TrainedModels/LSTM_Testing/WavPredictions'
+data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing/WavPredictions'
 
 file_tar_dense = glob.glob(os.path.normpath('/'.join([data_dir_dense, '_tar.wav'])))
-file_tar_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, '_tar.wav'])))
+file_tar_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, 'LSTM_tar.wav'])))
 file_pred_dense = glob.glob(os.path.normpath('/'.join([data_dir_dense, '_pred.wav'])))
-file_pred_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, '_pred.wav'])))
+file_pred_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, 'LSTM_pred.wav'])))
 
 for file in file_tar_dense:
     fs, audio_tar_dense = wavfile.read(file)
@@ -76,6 +77,9 @@ fft_tar = fft.fftshift(fft.fft(audio_tar_LSTM))[N//2:]
 fft_pred = fft.fftshift(fft.fft(audio_pred_LSTM))[N//2:]
 freqs = fft.fftshift(fft.fftfreq(N)*fs)
 freqs = freqs[N//2:]
+
+error_to_signal_ratio(audio_tar_LSTM, audio_pred_LSTM)
+
 
 fig, ax = plt.subplots()
 plt.title("Target vs Predictionn - Time Domain")

@@ -186,9 +186,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
         for i, indx in enumerate(gen_indxs):
             # Define directories
-            pred_name = '_pred.wav'
-            inp_name = '_inp.wav'
-            tar_name = '_tar.wav'
+            pred_name = 'LSTM_pred.wav'
+            inp_name = 'LSTM_inp.wav'
+            tar_name = 'LSTM_tar.wav'
 
             pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
             inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
