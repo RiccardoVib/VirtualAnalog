@@ -48,7 +48,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     shuffle_data = kwargs.get('shuffle_data', False)
     w_length = kwargs.get('w_length', 0.001)
     n_record = kwargs.get('n_record', 1)
-
+    loss_type = kwargs.get('loss_type', 'mse')
     # Get the data:
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record,
@@ -74,7 +74,12 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
                                           output_dim=output_dim,
                                           rate=drop)  # Dropout rate
 
-    loss_fn = tf.keras.losses.MeanAbsoluteError()       # loss_fn(sampling_rate=8820, a=.5, b=.5)
+    if loss_type == 'mae':
+        loss_fn = tf.keras.losses.MeanAbsoluteError()
+    elif loss_type == 'mse':
+        loss_fn = tf.keras.losses.MeanSquaredError()
+    else:
+        raise ValueError('Please pass loss_type as either MAE or MSE')
 
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     val_loss = tf.keras.metrics.Mean(name='val_loss')
@@ -328,6 +333,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         'dff': dff,
         'num_heads': num_heads,
         'drop': drop,
+        'loss_type':loss_type,
         'n_params': n_params,
         'learning_rate': learning_rate if isinstance(learning_rate, float) else 'Sched',
         'min_val_loss': np.min(_logs[1]),
@@ -447,6 +453,7 @@ if __name__ == '__main__':
         dff=32,
         num_heads=2,
         drop=0.1,
+        loss_type='mse',
         epochs=1,
         seed=422,
         shuffle_data=False,
