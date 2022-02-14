@@ -1,5 +1,5 @@
 import optuna
-from LSTM import trainLSTM
+from LSTM_enc_dec import trainLSTM
 import seaborn as sns
 import numpy as np
 

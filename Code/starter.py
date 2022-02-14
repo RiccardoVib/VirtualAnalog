@@ -1,4 +1,4 @@
-from LSTM import trainLSTM
+from LSTM_enc_dec import trainLSTM
 from DenseFeed import trainDense
 from GetData import get_data
 
