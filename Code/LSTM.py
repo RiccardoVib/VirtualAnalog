@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 
-
+#
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
