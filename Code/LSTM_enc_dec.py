@@ -33,8 +33,19 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     w_length = kwargs.get('w_length', 0.001)
     n_record = kwargs.get('n_record', 1)
 
-    encoder_units_ = encoder_units
-    decoder_units_ = decoder_units
+    layers_enc = len(encoder_units)
+    layers_dec = len(decoder_units)
+    n_units_enc = ''
+    for unit in encoder_units:
+        n_units_enc += str(unit) + ', '
+
+    n_units_dec = ''
+    for unit in decoder_units:
+        n_units_dec += str(unit) + ', '
+
+    n_units_enc = n_units_enc[:-2]
+    n_units_dec = n_units_dec[:-2]
+
 
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
@@ -162,8 +173,10 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'b_size': b_size,
             'loss_type': loss_type,
             'learning_rate': learning_rate,
-            'encoder_units': ''.join(map(str, encoder_units_)),
-            'decoder_units': ''.join(map(str, decoder_units_)),
+            'layers_enc':layers_enc,
+            'layers_dec':layers_dec,
+            'encoder_units': n_units_enc,
+            'decoder_units': n_units_dec,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared

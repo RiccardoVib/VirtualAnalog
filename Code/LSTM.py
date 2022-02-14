@@ -18,7 +18,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 16)
     learning_rate = kwargs.get('learning_rate', 0.001)
-    units = kwargs.get('encoder_units', [1])
+    units = kwargs.get('units', [1])
     model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
     save_folder = kwargs.get('save_folder', 'LSTM_testing')
     generate_wav = kwargs.get('generate_wav', None)
@@ -36,6 +36,12 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 
     layers = len(units)
+    n_units = ''
+    for unit in units:
+        n_units += str(unit)+', '
+
+    n_units = n_units[:-2]
+
     #T past values used to predict the next value
     T = x.shape[1] #time window
     D = x.shape[2]
@@ -97,7 +103,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
     #train the RNN
-    results = model.fit(x, batch_size=b_size, epochs=epochs,
+    results = model.fit(x, y, batch_size=b_size, epochs=epochs,
                         validation_data=(x_val, y_val),
                         #callbacks=tensorboard_callback)
                         callbacks=callbacks)
@@ -144,6 +150,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'loss_type': loss_type,
             'learning_rate': learning_rate,
             'layers': layers,
+            'units':n_units,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared
@@ -155,8 +162,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         gen_indxs = np.random.choice(len(y_test), generate_wav)
         x_gen = x_test
         y_gen = y_test
-        predictions = model.predict([x_gen, y_gen[:, :-1]])
-        print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
+        predictions = model.predict(x_gen)
+        print('GenerateWavLoss: ', model.evaluate(x_gen, y_gen, batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
         y_gen = scaler[0].inverse_transform(y_gen)
@@ -209,6 +216,7 @@ if __name__ == '__main__':
               save_folder='LSTM_Testing',
               ckpt_flag=True,
               b_size=128,
+              units=[1, 8],
               learning_rate=0.0001,
               epochs=1,
               loss_type='mse',

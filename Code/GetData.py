@@ -5,7 +5,8 @@ import tensorflow as tf
 import numpy as np
 from Preprocess import my_scaler
 
-def get_data(data_dir, n_record, shuffle, w_length,seed=422):
+
+def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -43,7 +44,6 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
     ratios = np.array(ratios, dtype=np.float32)
     thresholds = np.array(threshold, dtype=np.float32)
 
-    scaler = my_scaler()
     scaler_ratios = my_scaler()
     scaler_threshold = my_scaler()
 
@@ -52,7 +52,7 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
     thresholds = scaler_threshold.transform(thresholds)
     ratios = scaler_ratios.transform(ratios)
 
-    zero_value = (0 - scaler.min_data)/(scaler.max_data - scaler.min_data)
+    zero_value = (0 - scaler.min_data) / (scaler.max_data - scaler.min_data)
     zero_value_ratio = (0 - scaler_ratios.min_data) / (scaler_ratios.max_data - scaler_ratios.min_data)
     zero_value_threshold = (0 - scaler_threshold.min_data) / (scaler_threshold.max_data - scaler_threshold.min_data)
     zero_value = [zero_value, zero_value_ratio, zero_value_threshold]
@@ -64,14 +64,13 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
     x, y, x_val, y_val, x_test, y_test = [], [], [], [], [], []
 
     window = int(fs * w_length)
-    all_inp, all_tar, r, thre = [], [],  [], []
+    all_inp, all_tar, r, thre = [], [], [], []
 
     for i in range(n_record):
-        for t in range(inp.shape[1]//window):
-
+        for t in range(inp.shape[1] // window):
             inp_temp = np.array([inp[i, t * window:t * window + window], np.repeat(ratios[i], window)])
             all_inp.append(inp_temp.T)
-            tar_temp = np.array(tar[i, t*window:t*window + window])
+            tar_temp = np.array(tar[i, t * window:t * window + window])
             all_tar.append(tar_temp.T)
 
     all_inp = np.array(all_inp)
@@ -87,8 +86,8 @@ def get_data(data_dir, n_record, shuffle, w_length,seed=422):
         np.random.shuffle(matrix)
 
     N = all_inp.shape[0]
-    n_train = N//100*70
-    n_val = (N-n_train)//2
+    n_train = N // 100 * 70
+    n_val = (N - n_train) // 2
 
     for n in range(n_train):
         x.append(matrix[n][0])
