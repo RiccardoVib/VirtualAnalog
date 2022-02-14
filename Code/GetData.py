@@ -57,10 +57,10 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     zero_value_threshold = (0 - scaler_threshold.min_data) / (scaler_threshold.max_data - scaler_threshold.min_data)
     zero_value = [zero_value, zero_value_ratio, zero_value_threshold]
     scaler = [scaler, scaler_ratios, scaler_threshold]
+
     # -----------------------------------------------------------------------------------------------------------------
     # Shuffle indexing matrix and and split into test, train validation
     # -----------------------------------------------------------------------------------------------------------------
-
     x, y, x_val, y_val, x_test, y_test = [], [], [], [], [], []
 
     window = int(fs * w_length)

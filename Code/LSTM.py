@@ -16,7 +16,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 #
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
-    b_size = kwargs.get('b_size', 16)
+    b_size = kwargs.get('b_size', 32)
     learning_rate = kwargs.get('learning_rate', 0.001)
     units = kwargs.get('units', [1])
     model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
@@ -60,7 +60,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     #encoder_states = [state_h, state_c]
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    outputs = Dense(T, activation='sigmoid', name='DenseLay')(outputs)
+    outputs = Dense(T, name='DenseLay')(outputs)
     model = Model(inputs, outputs)
     model.summary()
 
