@@ -28,9 +28,6 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     shuffle_data = kwargs.get('shuffle_data', False)
     w_length = kwargs.get('w_length', 0.001)
 
-    encoder_units_ = encoder_units
-    decoder_units_ = decoder_units
-
     if data is None:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data_piano(data_dir, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
@@ -160,8 +157,6 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'Min_train_loss': np.min(results.history['loss']),
             'b_size': b_size,
             'learning_rate': learning_rate,
-            'encoder_units': ''.join(map(str, encoder_units_)),
-            'decoder_units': ''.join(map(str, decoder_units_)),
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared

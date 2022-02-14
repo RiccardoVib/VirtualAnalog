@@ -80,7 +80,8 @@ def get_data_piano(data_dir, shuffle, w_length, seed=422):
     y = np.array(y)
     x_val = np.array(x_val)
     y_val = np.array(y_val)
-    x_test = np.array(x_test)
-    y_test = np.array(y_test)
-
+    #x_test = np.array(x_test)
+    #y_test = np.array(y_test)
+    x_test = all_inp
+    y_test = all_tar
     return x, y, x_val, y_val, x_test, y_test, scaler, zero_value

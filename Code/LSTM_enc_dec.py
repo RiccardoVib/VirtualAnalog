@@ -23,7 +23,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     if encoder_units[-1] != decoder_units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
     model_save_dir = kwargs.get('model_save_dir', '../../LSTM_TrainedModels')
-    save_folder = kwargs.get('save_folder', 'LSTM_TESTING')
+    save_folder = kwargs.get('save_folder', 'LSTM_enc_dec_Testing')
     generate_wav = kwargs.get('generate_wav', None)
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
@@ -239,7 +239,7 @@ if __name__ == '__main__':
     #start = time.time()
     trainLSTM(data_dir=data_dir,
               model_save_dir='../../TrainedModels',
-              save_folder='LSTM_Testing',
+              save_folder='LSTM_enc_dec_Testing',
               ckpt_flag=True,
               b_size=128,
               learning_rate=0.0001,
