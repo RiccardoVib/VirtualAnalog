@@ -10,6 +10,7 @@ from tensorflow.keras.utils import Progbar
 import matplotlib.pyplot as plt
 from TrainFunctionality import coefficient_of_determination
 import pandas as pd
+from sklearn.metrics import r2_score
 
 def plot_spectral(Zxx, title, save_dir=None):
     fig, axs = plt.subplots()
@@ -324,6 +325,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     y_s = np.reshape(y_test[:, 1:], (-1))
     y_pred = np.reshape(predictions, (-1))
     r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+    r2_ = r2_score(y_s[:1600], y_pred[:1600])
 
     results = {
         'Test_Loss': test_loss.result().numpy(),
@@ -340,7 +342,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         'min_train_loss': np.min(_logs[0]),
         'val_loss': _logs[1],
         'train_loss': _logs[0],
-        'r_squared': r_squared
+        'r_squared': r2_
     }
 
     print(results)

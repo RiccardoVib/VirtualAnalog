@@ -12,6 +12,7 @@ from scipy.io import wavfile
 from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
+from sklearn.metrics import r2_score
 
 #
 def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
@@ -60,7 +61,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     #encoder_states = [state_h, state_c]
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    outputs = Dense(T, name='DenseLay')(outputs)
+    outputs = Dense(1, name='DenseLay')(outputs)
     model = Model(inputs, outputs)
     model.summary()
 
@@ -131,6 +132,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     y_s = np.reshape(y_test, (-1))
     y_pred = np.reshape(predictions_test,(-1))
     r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
+    r2_ = r2_score(y_s[:1600], y_pred[:1600])
 
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
@@ -153,7 +155,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'units':n_units,
             'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
-            'r_squared': r_squared
+            'r_squared': r2_
         }
         print(results)
 
