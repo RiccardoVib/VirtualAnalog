@@ -87,6 +87,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     model.summary()
+    model.output_shape
 
     if opt_type == 'Adam':
         opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -122,8 +123,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         else:
             print("Initializing random weights.")
 
-    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    #log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
     #train the RNN
@@ -152,7 +153,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
 
     final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
-    y_s = np.reshape(y_test, (-1))
+    y_s = np.reshape(y_test[:, 1:], (-1))
     y_pred = np.reshape(predictions_test,(-1))
     r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
 
@@ -192,7 +193,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
-        y_gen = scaler[0].inverse_transform(y_gen)
+        y_gen = scaler[0].inverse_transform(y_gen[:, 1:])
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)

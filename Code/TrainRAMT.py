@@ -321,7 +321,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     predictions, _ = transformer([tf.constant(x_test[:, : ,0], dtype='float32'), tf.constant(y_test[:, :-1], dtype='float32')], training=False)
     predictions = predictions.numpy()
 
-    y_s = np.reshape(y_test, (-1))
+    y_s = np.reshape(y_test[:, 1:], (-1))
     y_pred = np.reshape(predictions, (-1))
     r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
 
@@ -370,7 +370,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
-        y_gen = scaler[0].inverse_transform(y_gen)
+        y_gen = scaler[0].inverse_transform(y_gen[:, 1:])
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)

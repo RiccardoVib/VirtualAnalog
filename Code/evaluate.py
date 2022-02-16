@@ -7,94 +7,73 @@ import glob
 import matplotlib.pyplot as plt
 from TrainFunctionality import error_to_signal_ratio
 
-#data_dir_dense = 'C:/Users/riccarsi/Documents/GitHub/Results/DenseFeed_Testing/WavPredictions'
-data_dir_dense = '/Users/riccardosimionato/PycharmProjects/TrainedModels/Dense_Testing/WavPredictions'
-#data_dir_LSTM = 'C:/Users/riccarsi/Documents/GitHub/Results/LSTM2_Testing/WavPredictions'
-data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing/WavPredictions'
+def plot_result(data_dir, save):
+    file_tar = glob.glob(os.path.normpath('/'.join([data_dir, '*_tar.wav'])))
+    file_pred = glob.glob(os.path.normpath('/'.join([data_dir, '*_pred.wav'])))
 
-file_tar_dense = glob.glob(os.path.normpath('/'.join([data_dir_dense, '_tar.wav'])))
-file_tar_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, 'LSTM_tar.wav'])))
-file_pred_dense = glob.glob(os.path.normpath('/'.join([data_dir_dense, '_pred.wav'])))
-file_pred_LSTM = glob.glob(os.path.normpath('/'.join([data_dir_LSTM, 'LSTM_pred.wav'])))
+    for file in file_tar:
+        fs, audio_tar = wavfile.read(file)
+    for file in file_pred:
+        _, audio_pred = wavfile.read(file)
 
-for file in file_tar_dense:
-    fs, audio_tar_dense = wavfile.read(file)
-for file in file_pred_dense:
-    _, audio_pred_dense = wavfile.read(file)
-for file in file_tar_LSTM:
-    fs, audio_tar_LSTM = wavfile.read(file)
-for file in file_pred_LSTM:
-    _, audio_pred_LSTM = wavfile.read(file)
+    audio_tar = audio_tar.astype(np.float32)
+    audio_pred = audio_pred[0:1600].astype(np.float32)
 
-#Dense
-audio_tar_dense = audio_tar_dense.astype(np.float32)
-audio_pred_dense = audio_pred_dense.astype(np.float32)
-audio_tar_dense = audio_tar_dense[:len(audio_pred_dense)]
+    for index in range(len(audio_tar)//16):
 
+        audio_tar = np.delete(audio_tar, index)
+        index *= 16
 
+    audio_tar = audio_tar[:len(audio_pred)]
 
-#audio_tar_dense = audio_tar_dense[1600:1600*2]
-#audio_pred_dense = audio_pred_dense[1600:1600*2]
+    print(error_to_signal_ratio(audio_tar, audio_pred))
 
-time = np.linspace(0, len(audio_tar_dense) / fs, num=len(audio_tar_dense))
-N = len(audio_tar_dense)
-fs = 1600
-fft_tar = fft.fftshift(fft.fft(audio_tar_dense))[N//2:]
-fft_pred = fft.fftshift(fft.fft(audio_pred_dense))[N//2:]
-freqs = fft.fftshift(fft.fftfreq(N)*fs)
-freqs = freqs[N//2:]
+    #audio_tar_dense = audio_tar_dense[1600:1600*2]
+    #audio_pred_dense = audio_pred_dense[1600:1600*2]
 
-fig, ax = plt.subplots()
-plt.title("Target vs Predictionn - Time Domain")
-ax.plot(time, audio_tar_dense, label='Target')
-ax.plot(time, audio_pred_dense, label='Prediction')
-ax.set_xlabel('Time')
-ax.set_ylabel('Amplitude')
-ax.legend()
-plt.show()
+    time = np.linspace(0, len(audio_tar) / fs, num=len(audio_tar))
+    N = len(audio_tar)
+    fs = 1600
+    fft_tar = fft.fftshift(fft.fft(audio_tar))[N//2:]
+    fft_pred = fft.fftshift(fft.fft(audio_pred))[N//2:]
+    freqs = fft.fftshift(fft.fftfreq(N)*fs)
+    freqs = freqs[N//2:]
 
-fig, ax = plt.subplots()
-plt.title("Target vs Predictionn - Frequency Domain")
-ax.plot(freqs, fft_tar, label='Target')
-ax.plot(freqs, fft_pred, label='Prediction')
-ax.set_xlabel('Frequency')
-ax.set_ylabel('Amplitude')
-ax.legend()
-plt.show()
+    fig, ax = plt.subplots()
+    plt.title("Target vs Predictionn - Time Domain")
+    ax.plot(time, audio_tar, 'b--', label='Target')
+    ax.plot(time, audio_pred, 'r:', label='Prediction')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Amplitude')
+    ax.legend()
+    plt.show()
 
-#LSTM
-audio_tar_LSTM = audio_tar_LSTM.astype(np.float32)
-audio_pred_LSTM = audio_pred_LSTM.astype(np.float32)
-audio_tar_LSTM = audio_tar_LSTM[:len(audio_pred_LSTM)]
+    fname = os.path.normpath('/'.join([data_dir, 'time.png']))
 
-audio_tar_LSTM = audio_tar_LSTM[1600:1600*2]
-audio_pred_LSTM = audio_pred_LSTM[1600:1600*2]
+    if save:
+        fig.savefig(fname)
 
-time = np.linspace(0, len(audio_tar_LSTM) / fs, num=len(audio_tar_LSTM))
-N = len(audio_tar_LSTM)
-fs = 1600
-fft_tar = fft.fftshift(fft.fft(audio_tar_LSTM))[N//2:]
-fft_pred = fft.fftshift(fft.fft(audio_pred_LSTM))[N//2:]
-freqs = fft.fftshift(fft.fftfreq(N)*fs)
-freqs = freqs[N//2:]
+    fig, ax = plt.subplots()
+    plt.title("Target vs Predictionn - Frequency Domain")
+    ax.plot(freqs, fft_tar, 'b--', label='Target')
+    ax.plot(freqs, fft_pred, 'r:', label='Prediction')
+    ax.set_xlabel('Frequency')
+    ax.set_ylabel('Amplitude')
+    ax.legend()
+    plt.show()
 
-error_to_signal_ratio(audio_tar_LSTM, audio_pred_LSTM)
+    fname = os.path.normpath('/'.join([data_dir, 'freq.png']))
 
+    if save:
+        fig.savefig(fname)
 
-fig, ax = plt.subplots()
-plt.title("Target vs Predictionn - Time Domain")
-ax.plot(time, audio_tar_LSTM, label='Target')
-ax.plot(time, audio_pred_LSTM, label='Prediction')
-ax.set_xlabel('Time')
-ax.set_ylabel('Amplitude')
-ax.legend()
-plt.show()
+    #plt.close(fig)
 
-fig, ax = plt.subplots()
-plt.title("Target vs Predictionn - Frequency Domain")
-ax.plot(freqs, fft_tar, label='Target')
-ax.plot(freqs, fft_pred, label='Prediction')
-ax.set_xlabel('Frequency')
-ax.set_ylabel('Amplitude')
-ax.legend()
-plt.show()
+if __name__ == '__main__':
+    data_dir_ed = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_no_sig_Testing/WavPredictions'
+    data_dir_eds = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_enc_dec_sig/WavPredictions'
+    data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_normal_no_sig/WavPredictions'
+
+    plot_result(data_dir=data_dir_ed, save=True)
+    plot_result(data_dir=data_dir_eds, save=True)
+    plot_result(data_dir=data_dir_LSTM, save=True)
