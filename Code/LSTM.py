@@ -174,39 +174,26 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
 
-        for i, indx in enumerate(gen_indxs):
-            # Define directories
-            pred_name = 'LSTM_pred.wav'
-            inp_name = 'LSTM_inp.wav'
-            tar_name = 'LSTM_tar.wav'
+        # Define directories
+        pred_name = 'LSTM_pred.wav'
+        inp_name = 'LSTM_inp.wav'
+        tar_name = 'LSTM_tar.wav'
 
-            pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
-            inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
-            tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
+        pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
+        inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
+        tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
 
-            if not os.path.exists(os.path.dirname(pred_dir)):
-                os.makedirs(os.path.dirname(pred_dir))
+        if not os.path.exists(os.path.dirname(pred_dir)):
+            os.makedirs(os.path.dirname(pred_dir))
 
-            # Save Wav files
-            predictions = predictions.astype('int16')
-            x_gen = x_gen.astype('int16')
-            y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions)
-            wavfile.write(inp_dir, 16000, x_gen)
-            wavfile.write(tar_dir, 16000, y_gen)
+        # Save Wav files
+        predictions = predictions.astype('int16')
+        x_gen = x_gen.astype('int16')
+        y_gen = y_gen.astype('int16')
+        wavfile.write(pred_dir, 16000, predictions)
+        wavfile.write(inp_dir, 16000, x_gen)
+        wavfile.write(tar_dir, 16000, y_gen)
 
-            # Save some Spectral Plots:
-    #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
-    #         if not os.path.exists(spectral_dir):
-    #             os.makedirs(spectral_dir)
-    #         plot_spectral(Zxx=predictions[i], title='Predictions',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=x_gen[i], title='Inputs',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=y_gen[i], title='Target',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
-    #
-    #
     return results
 
 if __name__ == '__main__':

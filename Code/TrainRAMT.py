@@ -355,8 +355,6 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     # Save some Wav-file Predictions (from test set):
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO: Add filename instead of indices in saved name.. Also save losses.
-    # TODO: Do this for the longformer as well...
     if generate_wav is not None:
 
         np.random.seed(seed)
@@ -378,66 +376,27 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
 
+        # Define directories
+        pred_name = 'Transformer_pred.wav'
+        inp_name = 'Transformer_inp.wav'
+        tar_name = 'Transformer_tar.wav'
 
+        pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
+        inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
+        tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
 
-        for i, indx in enumerate(gen_indxs):
-            # Define directories
-            pred_name = 'Transformer_pred.wav'
-            inp_name = 'Transformer_inp.wav'
-            tar_name = 'Transformer_tar.wav'
+        if not os.path.exists(os.path.dirname(pred_dir)):
+            os.makedirs(os.path.dirname(pred_dir))
 
-            pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
-            inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
-            tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
-
-            if not os.path.exists(os.path.dirname(pred_dir)):
-                os.makedirs(os.path.dirname(pred_dir))
-
-            # Save Wav files
-            predictions = predictions.astype('int16')
-            x_gen = x_gen.astype('int16')
-            y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions)
-            wavfile.write(inp_dir, 16000, x_gen)
-            wavfile.write(tar_dir, 16000, y_gen)
-
-            # # Save some Spectral Plots:
-            # spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
-            # if not os.path.exists(spectral_dir):
-            #     os.makedirs(spectral_dir)
-            # plot_spectral(Zxx=predictions[i], title='Predictions',
-            #               save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
-            # plot_spectral(Zxx=x_gen[i], title='Inputs',
-            #               save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
-            # plot_spectral(Zxx=y_gen[i], title='Target',
-            #               save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
-
+        # Save Wav files
+        predictions = predictions.astype('int16')
+        x_gen = x_gen.astype('int16')
+        y_gen = y_gen.astype('int16')
+        wavfile.write(pred_dir, 16000, predictions)
+        wavfile.write(inp_dir, 16000, x_gen)
+        wavfile.write(tar_dir, 16000, y_gen)
 
     return results
-
-    # # TODO: Sort this out for proper training (i.e. not for a single sample as here... )
-    # predictions, _ = transformer([x_batch, y_batch[:, :-1, :]], training=False)
-    # #print(loss_fn(y_batch[:, 1:], predictions).numpy())
-    #
-    # # checking one prediction
-    # #for i in range(len(x_batch[0,0,:])):
-    #  #   predictions, _ = transformer([x_batch[:,:,:i+1], y_batch[:, -1, :i+1]], training=False)
-    #   #  prediction[i] = predictions[0]
-    #
-    # predictions = predictions[0].numpy()
-    # predictions = scaler.inverse_transform(predictions)
-    # predictions = tf.squeeze(predictions).numpy()       # Remove dimensions of size == 1.
-    #
-    #
-    # # To perform inverse STFT we need to have the same frequency bins as were produced by the original STFT (i.e.
-    # # before removing higher frequencies), we therefore pad these values with zeroes:
-    # #predictions = np.concatenate([predictions, np.zeros((predictions.shape[0], predictions.shape[-1]))], axis=-1)
-    #
-    # _, prediction = signal.istft(predictions.T, nperseg=4410, nfft=5120)     # Inverse STFT
-    # prediction = signal.resample_poly(prediction, up=5, down=1)
-    # prediction = prediction.astype('int16')   # Convert the data to int16 values.
-    # wavfile.write(r'prediction.wav', 44100, prediction)
-
 
 if __name__ == '__main__':
     data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'

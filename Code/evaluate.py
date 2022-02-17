@@ -65,8 +65,8 @@ def plot_result(data_dir, save):
 
     fname = os.path.normpath('/'.join([data_dir, 'freq.png']))
 
-    if save:
-        fig.savefig(fname)
+    #if save:
+        #fig.savefig(fname)
 
     #plt.close(fig)
 
@@ -74,7 +74,15 @@ if __name__ == '__main__':
     data_dir_ed = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_no_sig_Testing/WavPredictions'
     data_dir_eds = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_enc_dec_sig/WavPredictions'
     data_dir_LSTM = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_normal_no_sig/WavPredictions'
+    data_dir_LSTMs = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_normal_sig/WavPredictions'
+    data_dir_LSTMsT_1 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_normal_sig_T1/WavPredictions'
+    data_dir_Dense = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing/WavPredictions'
+    data_dir_Dense_3 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_3/WavPredictions'
 
-    plot_result(data_dir=data_dir_ed, save=True)
-    plot_result(data_dir=data_dir_eds, save=True)
-    plot_result(data_dir=data_dir_LSTM, save=True)
+    #plot_result(data_dir=data_dir_ed, save=True)
+    #plot_result(data_dir=data_dir_eds, save=True)
+    #plot_result(data_dir=data_dir_LSTM, save=True)
+    plot_result(data_dir=data_dir_LSTMs, save=True)
+    plot_result(data_dir=data_dir_LSTMsT_1, save=True)
+    #plot_result(data_dir=data_dir_Dense, save=True)#esr:0.5543166281246964
+    #plot_result(data_dir=data_dir_Dense_3, save=True)#esr:5568089993155195

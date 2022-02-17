@@ -9,11 +9,12 @@ from scipy import signal
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
+import time
 
-#comment
+#TODO: early stopping
 def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
-    b_size = kwargs.get('b_size', 16)
+    b_size = kwargs.get('b_size', 32)
     learning_rate = kwargs.get('learning_rate', 0.001)
     units = kwargs.get('units', [8, 8])
     if units[-1] != units[0]:
@@ -34,6 +35,13 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
+
+    layers = len(units)
+    n_units = ''
+    for unit in units:
+        n_units += str(unit)+', '
+
+    n_units = n_units[:-2]
 
     #T past values used to predict the next value
     T = x.shape[1] #time window
@@ -134,11 +142,14 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
             'Min_train_loss': np.min(results.history['loss']),
             'b_size': b_size,
             'learning_rate': learning_rate,
-            'units': units,
             'drop' : drop,
             'opt_type' : opt_type,
+            'loss_type' : loss_type,
             'shuffle_data' : shuffle_data,
-            'Train_loss': results.history['loss'],
+            'layers' : layers,
+            'n_units' : n_units,
+            'n_record' : n_record,
+            #'Train_loss': results.history['loss'],
             'Val_loss': results.history['val_loss'],
             'r_squared': r_squared
         }
@@ -146,10 +157,14 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 
     if generate_wav is not None:
         np.random.seed(seed)
-        gen_indxs = np.random.choice(len(y_test), generate_wav)
         x_gen = x_test
         y_gen = y_test
+
+        start = time.time()
         predictions = model.predict(x_gen)
+        end = time.time()
+        print(end - start)#0.5176839828491211
+
         print('GenerateWavLoss: ', model.evaluate([x_gen], y_gen, batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
@@ -158,56 +173,43 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
-        for i, indx in enumerate(gen_indxs):
-            # Define directories
-            pred_name = '_pred.wav'
-            inp_name = '_inp.wav'
-            tar_name = '_tar.wav'
 
-            pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
-            inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
-            tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
+        # Define directories
+        pred_name = 'Dense_pred.wav'
+        inp_name = 'Dense_inp.wav'
+        tar_name = 'Dense_tar.wav'
 
-            if not os.path.exists(os.path.dirname(pred_dir)):
-                os.makedirs(os.path.dirname(pred_dir))
+        pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
+        inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
+        tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
 
-            # Save Wav files
-            predictions = predictions.astype('int16')
-            x_gen = x_gen.astype('int16')
-            y_gen = y_gen.astype('int16')
-            wavfile.write(pred_dir, 16000, predictions)
-            wavfile.write(inp_dir, 16000, x_gen)
-            wavfile.write(tar_dir, 16000, y_gen)
+        if not os.path.exists(os.path.dirname(pred_dir)):
+            os.makedirs(os.path.dirname(pred_dir))
 
-            # Save some Spectral Plots:
-    #         spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
-    #         if not os.path.exists(spectral_dir):
-    #             os.makedirs(spectral_dir)
-    #         plot_spectral(Zxx=predictions[i], title='Predictions',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=x_gen[i], title='Inputs',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
-    #         plot_spectral(Zxx=y_gen[i], title='Target',
-    #                       save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
-    #
-    #
+        # Save Wav files
+        predictions = predictions.astype('int16')
+        x_gen = x_gen.astype('int16')
+        y_gen = y_gen.astype('int16')
+        wavfile.write(pred_dir, 16000, predictions)
+        wavfile.write(inp_dir, 16000, x_gen)
+        wavfile.write(tar_dir, 16000, y_gen)
+
+
     return results
 
 if __name__ == '__main__':
-    tf.get_logger().setLevel('INFO')
-    #data_dir = '/Users/riccardosimionato/Datasets/VA/VA_results'
-    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     data_dir = '../Files'
     seed = 422
     trainDense(data_dir=data_dir,
                model_save_dir='../../TrainedModels',
-               save_folder='DenseFeed_Testing',
+               save_folder='DenseFeed_Testing_2',
                ckpt_flag=True,
-               b_size=16,
+               b_size=32,
                learning_rate=0.0001,
-               units=[2, 2],
-               epochs=1,
+               units=[4],
+               epochs=10,
                n_record=1,
+               loss_type='mse',
                generate_wav=2,
-               w_length=0.001,
+               w_length=0.0005,
                shuffle_data=False)
