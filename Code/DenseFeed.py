@@ -16,7 +16,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 32)
     learning_rate = kwargs.get('learning_rate', 0.001)
-    units = kwargs.get('units', [8, 8])
+    units = kwargs.get('units', [4])
     if units[-1] != units[0]:
         raise ValueError('Final encoder layer must same units as first decoder layer!')
     model_save_dir = kwargs.get('model_save_dir', '../../DenseFeed_TrainedModels')
@@ -202,14 +202,14 @@ if __name__ == '__main__':
     seed = 422
     trainDense(data_dir=data_dir,
                model_save_dir='../../TrainedModels',
-               save_folder='DenseFeed_Testing_2',
+               save_folder='DenseFeed_Testing_prova_input',
                ckpt_flag=True,
                b_size=32,
                learning_rate=0.0001,
                units=[4],
                epochs=10,
-               n_record=1,
+               n_record=8,
                loss_type='mse',
                generate_wav=2,
-               w_length=0.0005,
+               w_length=0.00025,
                shuffle_data=False)

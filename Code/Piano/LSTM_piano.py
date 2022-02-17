@@ -217,8 +217,8 @@ if __name__ == '__main__':
     data_dir = '../../Files'
     seed = 422
     trainLSTM(data_dir=data_dir,
-              model_save_dir='../../TrainedModels_sine',
-              save_folder='LSTM_Testing_sine',
+              model_save_dir='../../TrainedModels_shifted2',
+              save_folder='LSTM_Testing_shifted2',
               ckpt_flag=True,
               b_size=32,
               learning_rate=0.0001,

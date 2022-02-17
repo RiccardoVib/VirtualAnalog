@@ -12,15 +12,14 @@ def get_keys_from_value(d, val):
 
 def data_preparation(**kwargs):
     data_dir = '/Users/riccardosimionato/Datasets/Piano'
-    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
-    #save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
     save_dir = '/Users/riccardosimionato/Datasets/Piano'
-    factor = 6#3
 
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
     inp_collector, tar_collector = [], []
     inp_collector_imp, tar_collector_imp = [], []
     inp_collector_sine, tar_collector_sine = [], []
+    inp_collector_shifted, tar_collector_shifted = [], []
+    factor = 6
 
     for file in file_dirs:
         filename = os.path.split(file)[-1]
@@ -28,34 +27,43 @@ def data_preparation(**kwargs):
         audio_stereo = audio_stereo.astype(np.float32)
         audio_stereo = signal.resample_poly(audio_stereo, 1, factor)
 
-        if filename == 'Piano.wav':
-            tar_collector.append(audio_stereo)
-        if filename == 'Sine.wav':
-            inp_collector.append(audio_stereo)
+        # if filename == 'Piano.wav':
+        #     tar_collector.append(audio_stereo)
+        # if filename == 'Sine.wav':
+        #     inp_collector.append(audio_stereo)
+        #
+        # if filename == 'Piano_per_imp.wav':
+        #     tar_collector_sine.append(audio_stereo)
+        # if filename == 'Sine_per_imp.wav':
+        #     inp_collector_sine.append(audio_stereo)
+        #
+        # if filename == 'Piano_per_imp.wav':
+        #     tar_collector_imp.append(audio_stereo)
+        # if filename == 'square.wav':
+        #     inp_collector_imp.append(audio_stereo)
 
-        if filename == 'Piano_per_imp.wav':
-            tar_collector_sine.append(audio_stereo)
-        if filename == 'Sine_per_imp.wav':
-            inp_collector_sine.append(audio_stereo)
-
-        if filename == 'Piano_per_imp.wav':
-            tar_collector_imp.append(audio_stereo)
-        if filename == 'square.wav':
-            inp_collector_imp.append(audio_stereo)
+        if filename == 'Piano_per_shifted.wav':
+            tar_collector_shifted.append(audio_stereo)
+        if filename == 'Sine_shifted.wav':
+            inp_collector_shifted.append(audio_stereo)
 
 
-    data = {'inp': inp_collector, 'tar': tar_collector}
-    data_imp = {'inp': inp_collector_imp, 'tar': tar_collector_imp}
-    data_sine = {'inp': inp_collector_sine, 'tar': tar_collector_sine}
-    file_data = open(os.path.normpath('/'.join([save_dir,'piano_data.pickle'])), 'wb')
-    file_data_imp = open(os.path.normpath('/'.join([save_dir,'piano_data_imp.pickle'])), 'wb')
-    file_data_sine = open(os.path.normpath('/'.join([save_dir,'piano_data_sine.pickle'])), 'wb')
-    pickle.dump(data, file_data)
-    pickle.dump(data_imp, file_data_imp)
-    pickle.dump(data_sine, file_data_sine)
-    file_data.close()
-    file_data_imp.close()
-    file_data_sine.close()
+    #data = {'inp': inp_collector, 'tar': tar_collector}
+    data_s = {'inp': inp_collector_shifted, 'tar': tar_collector_shifted}
+    #data_imp = {'inp': inp_collector_imp, 'tar': tar_collector_imp}
+    #data_sine = {'inp': inp_collector_sine, 'tar': tar_collector_sine}
+    #file_data = open(os.path.normpath('/'.join([save_dir,'piano_data.pickle'])), 'wb')
+    file_data_s = open(os.path.normpath('/'.join([save_dir,'piano_data_shifted.pickle'])), 'wb')
+    #file_data_imp = open(os.path.normpath('/'.join([save_dir,'piano_data_imp.pickle'])), 'wb')
+    #file_data_sine = open(os.path.normpath('/'.join([save_dir,'piano_data_sine.pickle'])), 'wb')
+    #pickle.dump(data, file_data)
+    pickle.dump(data_s, file_data_s)
+    #pickle.dump(data_imp, file_data_imp)
+    #pickle.dump(data_sine, file_data_sine)
+    #file_data.close()
+    file_data_s.close()
+    #file_data_imp.close()
+    #file_data_sine.close()
 
 if __name__ == '__main__':
 
