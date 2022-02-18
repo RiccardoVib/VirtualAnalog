@@ -12,16 +12,18 @@ def get_keys_from_value(d, val):
 
 def data_preparation(**kwargs):
     data_dir = '/Users/riccardosimionato/Datasets/VA'
-    data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
-    save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
-    factor = 6#3
+    #data_dir = 'C:/Users/riccarsi/Documents/GitHub/VA'
+    #save_dir = 'C:/Users/riccarsi/Documents/GitHub/VA_pickle'
+    factor = 1#6#3
     #data_dir = kwargs.get('data_dir', '/Users/riccardosimionato/Datasets/VA')
-    #save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
+    save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
-    L = 5349643-100#10699286-100 #32097856#MAX=34435680
+    L = 32000000
+    #L = 32097856##10699286-100 #32097856#MAX=34435680
+    #L = 5349643-100#e 16kHz
     inp_collector, tar_collector, ratio_collector, threshold_collector = [], [], [], []
-    ratio, threshold = '', ''
+    #ratio, threshold = '', ''
     fs = 0
     for file in file_dirs:
 
@@ -30,25 +32,25 @@ def data_preparation(**kwargs):
         ratio = metadata[1]
         threshold = metadata[-1].replace('.wav', '')
         fs, audio_stereo = wavfile.read(file) #fs= 96,000 Hz
-        inp = audio_stereo[:, 0].astype(np.float32)
-        tar = audio_stereo[1:, 1].astype(np.float32)
+        inp = audio_stereo[:L, 0].astype(np.float32)
+        tar = audio_stereo[1:L+1, 1].astype(np.float32)
         ratio = str(ratio)
         if len(ratio) > 2:
             ratio = ratio[:2] + '.' + ratio[2:]
 
         #target is delayed by one sample due the system processing so
         #need to be moved
-        tar = tar[1:len(tar)]
+        #tar = tar[1:len(tar)]
 
-        inp = signal.resample_poly(inp, 1, factor)
-        tar = signal.resample_poly(tar, 1, factor)
+        #inp = signal.resample_poly(inp, 1, factor)
+        #tar = signal.resample_poly(tar, 1, factor)
         ratio = float(ratio)
         threshold = float(threshold)
         #tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
 
-        if len(tar) > L:
-            inp = inp[0:L]
-            tar = tar[0:L]
+        #if len(tar) > L:
+        #    inp = inp[0:L]
+        #    tar = tar[0:L]
 
         #if len(inp) < L:
         #    L = len(inp)
@@ -72,8 +74,8 @@ def data_preparation(**kwargs):
     data = {'inp': inp_collector, 'tar': tar_collector}
 
     # open a file, where you ant to store the data
-    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas.pickle'])), 'wb')
-    file_data = open(os.path.normpath('/'.join([save_dir,'data.pickle'])), 'wb')
+    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas44.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([save_dir,'data44.pickle'])), 'wb')
 
     # dump information to that file
     pickle.dump(metadatas, file_metadatas)

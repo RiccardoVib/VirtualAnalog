@@ -11,7 +11,6 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, SGD
 import time
 
-#TODO: early stopping
 def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     ckpt_flag = kwargs.get('ckpt_flag', False)
     b_size = kwargs.get('b_size', 32)
@@ -31,8 +30,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     n_record = kwargs.get('n_record', 1)
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir=data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
-
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir=data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, freq='44', seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 

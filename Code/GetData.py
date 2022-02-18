@@ -6,7 +6,7 @@ import numpy as np
 from Preprocess import my_scaler
 
 #
-def get_data(data_dir, n_record, shuffle, w_length, seed=422):
+def get_data(data_dir, n_record, shuffle, freq, w_length, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -15,8 +15,13 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data.pickle'])), 'rb')
+    if freq == '44':
+        meta = open(os.path.normpath('/'.join([data_dir, 'metadatas44.pickle'])), 'rb')
+        file_data = open(os.path.normpath('/'.join([data_dir, 'data44.pickle'])), 'rb')
+    else:
+        meta = open(os.path.normpath('/'.join([data_dir, 'metadatas.pickle'])), 'rb')
+        file_data = open(os.path.normpath('/'.join([data_dir, 'data.pickle'])), 'rb')
+
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']
@@ -68,7 +73,7 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
 
     for i in range(n_record):
         for t in range(inp.shape[1] // window):
-            inp_temp = np.array([inp[i, t * window:t * window + window], np.repeat(ratios[i], window)])
+            inp_temp = np.array([inp[i, t * window:t * window + window], np.repeat(ratios[i], window), np.repeat(thresholds[i], window)])
             all_inp.append(inp_temp.T)
             tar_temp = np.array(tar[i, t * window:t * window + window])
             all_tar.append(tar_temp.T)

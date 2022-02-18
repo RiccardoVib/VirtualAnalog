@@ -52,7 +52,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     loss_type = kwargs.get('loss_type', 'mse')
     # Get the data:
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record,
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, freq='', n_record=n_record,
                                                                           shuffle=shuffle_data, w_length=w_length,
                                                                           seed=seed)
     else:

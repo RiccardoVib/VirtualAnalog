@@ -49,7 +49,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value = get_data(data_dir, freq='', n_record=n_record, shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value = data
 

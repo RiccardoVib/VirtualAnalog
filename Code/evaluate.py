@@ -17,8 +17,9 @@ def plot_result(data_dir, save):
     for file in file_pred:
         _, audio_pred = wavfile.read(file)
 
-    audio_tar = audio_tar.astype(np.float32)
-    audio_pred = audio_pred[0:1600].astype(np.float32)
+    audio_tar = audio_tar.astype(np.float32)/32768
+    audio_pred = audio_pred[0:].astype(np.float32)/32768
+
 
     #for index in range(len(audio_tar)//16):
     #    audio_tar = np.delete(audio_tar, index)
@@ -26,9 +27,9 @@ def plot_result(data_dir, save):
 
     audio_tar = audio_tar[:len(audio_pred)]
 
-    print(error_to_signal_ratio(audio_tar, audio_pred))
-    r2_ = r2_score(audio_tar[:1600], audio_pred[:1600])
-    print(r2_)
+    #print(error_to_signal_ratio(audio_tar, audio_pred))
+    #r2_ = r2_score(audio_tar[:1600], audio_pred[:1600])
+    #print(r2_)
     #audio_tar_dense = audio_tar_dense[1600:1600*2]
     #audio_pred_dense = audio_pred_dense[1600:1600*2]
 
@@ -56,8 +57,8 @@ def plot_result(data_dir, save):
 
     fig, ax = plt.subplots()
     plt.title("Target vs Predictionn - Frequency Domain")
-    ax.plot(freqs, fft_tar, 'b--', label='Target')
-    ax.plot(freqs, fft_pred, 'r:', label='Prediction')
+    ax.plot(freqs, np.abs(fft_tar), 'b--', label='Target')
+    ax.plot(freqs, np.abs(fft_pred), 'r:', label='Prediction')
     ax.set_xlabel('Frequency')
     ax.set_ylabel('Amplitude')
     ax.legend()
