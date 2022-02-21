@@ -5,7 +5,7 @@ import tensorflow as tf
 import numpy as np
 from Preprocess import my_scaler
 
-#
+#TODO:togliere ratio e threshold centrale prima dello scaling e tenerlo per il test
 def get_data(data_dir, n_record, shuffle, freq, w_length, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
@@ -15,9 +15,12 @@ def get_data(data_dir, n_record, shuffle, freq, w_length, seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-    if freq == '44':
-        meta = open(os.path.normpath('/'.join([data_dir, 'metadatas44.pickle'])), 'rb')
-        file_data = open(os.path.normpath('/'.join([data_dir, 'data44.pickle'])), 'rb')
+    if freq == '48':
+        meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48.pickle'])), 'rb')
+        file_data = open(os.path.normpath('/'.join([data_dir, 'data48.pickle'])), 'rb')
+    elif freq == '96':
+        meta = open(os.path.normpath('/'.join([data_dir, 'metadatas96.pickle'])), 'rb')
+        file_data = open(os.path.normpath('/'.join([data_dir, 'data96.pickle'])), 'rb')
     else:
         meta = open(os.path.normpath('/'.join([data_dir, 'metadatas.pickle'])), 'rb')
         file_data = open(os.path.normpath('/'.join([data_dir, 'data.pickle'])), 'rb')
