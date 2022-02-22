@@ -7,6 +7,8 @@ import glob
 import matplotlib.pyplot as plt
 from TrainFunctionality import error_to_signal_ratio
 from sklearn.metrics import r2_score
+import librosa
+import audio_format
 
 def plot_result(data_dir, save):
     file_tar = glob.glob(os.path.normpath('/'.join([data_dir, '*_tar.wav'])))
@@ -14,18 +16,25 @@ def plot_result(data_dir, save):
 
     for file in file_tar:
         fs, audio_tar = wavfile.read(file)
+        #audio_tar_ = librosa.load(file, 48000)
     for file in file_pred:
         _, audio_pred = wavfile.read(file)
+        #audio_pred_ = librosa.load(file, 48000)
 
-    audio_tar = audio_tar.astype(np.float32)/32768
-    audio_pred = audio_pred[0:1600].astype(np.float32)/32768
+    #audio_tar = audio_tar.astype(np.float32)/32768
+    #audio_pred = audio_pred[1600*0:].astype(np.float32)/32768
 
-
+    audio_tar = audio_format.pcm2float(audio_tar)
+    audio_pred = audio_format.pcm2float(audio_pred)
     #for index in range(len(audio_tar)//16):
     #    audio_tar = np.delete(audio_tar, index)
     #    index *= 16
-
+    audio_pred = audio_pred[0:1600]
     audio_tar = audio_tar[:len(audio_pred)]
+    #audio_tar_ = audio_tar_[0]
+    #audio_pred_ = audio_pred_[0]
+    #audio_pred_ = audio_pred_[0: 1600]
+    #audio_tar_ = audio_tar_[:len(audio_pred_)]
 
     #print(error_to_signal_ratio(audio_tar, audio_pred))
     #r2_ = r2_score(audio_tar[:1600], audio_pred[:1600])
@@ -52,8 +61,8 @@ def plot_result(data_dir, save):
 
     fname = os.path.normpath('/'.join([data_dir, 'time.png']))
 
-    if save:
-        fig.savefig(fname)
+    #if save:
+    #    fig.savefig(fname)
 
     fig, ax = plt.subplots(2,1)
     plt.suptitle("Target vs Prediction - Frequency Domain")
@@ -83,13 +92,13 @@ if __name__ == '__main__':
     data_dir_Dense = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing/WavPredictions'
     data_dir_Dense_3 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_3/WavPredictions'
     DenseFeed_Testing_48_1_layer_sig = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_48_1_layer_sig/WavPredictions'
-    DenseFeed_Testing_all_28 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_all_28/WavPredictions'
+    DenseFeed_Testing_48_getdata2 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_48_getdata2/WavPredictions'
     #plot_result(data_dir=data_dir_ed, save=True)
     #plot_result(data_dir=data_dir_eds, save=True)
     #plot_result(data_dir=data_dir_LSTM, save=True)
     #plot_result(data_dir=data_dir_LSTMs, save=True)
     #plot_result(data_dir=data_dir_LSTMsT_1, save=True)
     plot_result(data_dir=DenseFeed_Testing_48_1_layer_sig, save=True)
-    plot_result(data_dir=DenseFeed_Testing_all_28, save=True)
+    plot_result(data_dir=DenseFeed_Testing_48_getdata2, save=True)
     #plot_result(data_dir=data_dir_Dense, save=True)#esr:0.5543166281246964
     #plot_result(data_dir=data_dir_Dense_3, save=True)#esr:5568089993155195
