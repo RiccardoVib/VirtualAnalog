@@ -2,7 +2,7 @@ import numpy as np
 import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from GetData import get_data
+from GetData2 import get_data
 from TrainFunctionality import coefficient_of_determination
 from scipy.io import wavfile
 from scipy import signal
@@ -30,7 +30,9 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     n_record = kwargs.get('n_record', 1)
 
     if data is None:
-        x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, freq='', seed=seed)
+        #x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=n_record, shuffle=shuffle_data, w_length=w_length, freq='', seed=seed)
+        x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=n_record,
+                                                                              shuffle=shuffle_data, w_length=w_length, seed=seed)
     else:
         x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = data
 
@@ -202,12 +204,13 @@ if __name__ == '__main__':
                model_save_dir='../../TrainedModels',
                save_folder='DenseFeed_Testing_prova_input',
                ckpt_flag=False,
-               b_size=32,
+               b_size=128,
                learning_rate=0.0001,
-               units=[4],
+               units=[1],
                epochs=1,
                n_record=2,
                loss_type='mse',
                generate_wav=2,
-               w_length=0.00025,
+               #w_length=0.00025,
+               w_length=0.1,
                shuffle_data=False)

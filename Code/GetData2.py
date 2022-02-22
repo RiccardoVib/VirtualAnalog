@@ -124,11 +124,11 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     thresholds = scaler[2].transform(thresholds)
     ratios = scaler[1].transform(ratios)
 
-    for t in range(inp.shape[0] // window):
+    for t in range(inp.shape[1] // window):
         inp_temp = np.array(
-            [inp[i, t * window:t * window + window], np.repeat(ratios[i], window), np.repeat(thresholds[i], window)])
+            [inp[0, t * window:t * window + window], np.repeat(ratios[0], window), np.repeat(thresholds[0], window)])
         all_inp.append(inp_temp.T)
-        tar_temp = np.array(tar[i, t * window:t * window + window])
+        tar_temp = np.array(tar[0, t * window:t * window + window])
         all_tar.append(tar_temp.T)
 
     all_inp = np.array(all_inp)

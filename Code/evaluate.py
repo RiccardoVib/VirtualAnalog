@@ -18,7 +18,7 @@ def plot_result(data_dir, save):
         _, audio_pred = wavfile.read(file)
 
     audio_tar = audio_tar.astype(np.float32)/32768
-    audio_pred = audio_pred[0:].astype(np.float32)/32768
+    audio_pred = audio_pred[0:1600].astype(np.float32)/32768
 
 
     #for index in range(len(audio_tar)//16):
@@ -35,14 +35,14 @@ def plot_result(data_dir, save):
 
     time = np.linspace(0, len(audio_tar) / fs, num=len(audio_tar))
     N = len(audio_tar)
-    fs = 1600
+    fs = 48000
     fft_tar = fft.fftshift(fft.fft(audio_tar))[N//2:]
     fft_pred = fft.fftshift(fft.fft(audio_pred))[N//2:]
     freqs = fft.fftshift(fft.fftfreq(N)*fs)
     freqs = freqs[N//2:]
 
     fig, ax = plt.subplots()
-    plt.title("Target vs Predictionn - Time Domain")
+    plt.title("Target vs Prediction - Time Domain")
     ax.plot(time, audio_tar, 'b--', label='Target')
     ax.plot(time, audio_pred, 'r:', label='Prediction')
     ax.set_xlabel('Time')
@@ -55,13 +55,16 @@ def plot_result(data_dir, save):
     if save:
         fig.savefig(fname)
 
-    fig, ax = plt.subplots()
-    plt.title("Target vs Predictionn - Frequency Domain")
-    ax.plot(freqs, np.abs(fft_tar), 'b--', label='Target')
-    ax.plot(freqs, np.abs(fft_pred), 'r:', label='Prediction')
-    ax.set_xlabel('Frequency')
-    ax.set_ylabel('Amplitude')
-    ax.legend()
+    fig, ax = plt.subplots(2,1)
+    plt.suptitle("Target vs Prediction - Frequency Domain")
+    ax[0].plot(freqs, 20*np.log10(np.abs(fft_tar)), 'b', label='Target')
+    ax[1].plot(freqs, 20*np.log10(np.abs(fft_pred)), 'r', label='Prediction')
+    ax[0].set_xlabel('Frequency')
+    ax[1].set_xlabel('Frequency')
+    ax[0].set_ylabel('Magnitude (dB)')
+    ax[1].set_ylabel('Magnitude (dB)')
+    ax[0].legend()
+    ax[1].legend()
     plt.show()
 
     fname = os.path.normpath('/'.join([data_dir, 'freq.png']))
@@ -79,11 +82,14 @@ if __name__ == '__main__':
     data_dir_LSTMsT_1 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_Testing_normal_sig_T1/WavPredictions'
     data_dir_Dense = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing/WavPredictions'
     data_dir_Dense_3 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_3/WavPredictions'
-
+    DenseFeed_Testing_48_1_layer_sig = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_48_1_layer_sig/WavPredictions'
+    DenseFeed_Testing_all_28 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_all_28/WavPredictions'
     #plot_result(data_dir=data_dir_ed, save=True)
     #plot_result(data_dir=data_dir_eds, save=True)
     #plot_result(data_dir=data_dir_LSTM, save=True)
-    plot_result(data_dir=data_dir_LSTMs, save=True)
-    plot_result(data_dir=data_dir_LSTMsT_1, save=True)
+    #plot_result(data_dir=data_dir_LSTMs, save=True)
+    #plot_result(data_dir=data_dir_LSTMsT_1, save=True)
+    plot_result(data_dir=DenseFeed_Testing_48_1_layer_sig, save=True)
+    plot_result(data_dir=DenseFeed_Testing_all_28, save=True)
     #plot_result(data_dir=data_dir_Dense, save=True)#esr:0.5543166281246964
     #plot_result(data_dir=data_dir_Dense_3, save=True)#esr:5568089993155195
