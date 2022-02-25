@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 import numpy as np
 from Preprocess import my_scaler
-
+import pickle
 
 def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     np.random.seed(seed)
@@ -150,3 +150,19 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     y_test = np.array(y_test)
 
     return x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs
+
+if __name__ == '__main__':
+
+    data_dir = '../Files'
+    w1 = 0.000021
+    w2 = 0.000045
+    w4 = 0.00009
+    w8 = 0.00017
+    w16 = 0.00034
+    x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=27, shuffle=False, w_length=w2, seed=422)
+
+    data = {'x': x, 'y': y, 'x_val':x_val, 'y_val': y_val, 'x_test': x_test, 'y_test': y_test, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
+
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w2.pickle'])), 'wb')
+    pickle.dump(data, file_data)
+    file_data.close()
