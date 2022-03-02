@@ -15,8 +15,8 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_train.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_train.pickle'])), 'rb')
+    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_train_2.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_train_2.pickle'])), 'rb')
 
     Z = pickle.load(file_data)
     inp = Z['inp']
@@ -78,6 +78,10 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     all_inp = np.array(all_inp)
     all_tar = np.array(all_tar)
 
+    #data = {'all_inp' : all_inp, 'all_tar': all_tar, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
+    #file_data = open(os.path.normpath('/'.join([data_dir, 'all_w1.pickle'])), 'wb')
+    #pickle.dump(data, file_data)
+
     w = 2  # n of column
     h = len(all_inp)  # n of row
     matrix = [[0 for x in range(w)] for y in range(h)]
@@ -107,8 +111,8 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     # TEST
     all_inp, all_tar, r, thre = [], [], [], []
 
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test.pickle'])), 'rb')
+    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test_2.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test_2.pickle'])), 'rb')
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']
@@ -159,10 +163,10 @@ if __name__ == '__main__':
     w4 = 0.00009
     w8 = 0.00017
     w16 = 0.00034
-    x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=27, shuffle=False, w_length=w2, seed=422)
+    x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=27, shuffle=False, w_length=w4, seed=422)
 
-    data = {'x': x, 'y': y, 'x_val':x_val, 'y_val': y_val, 'x_test': x_test, 'y_test': y_test, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
+    data = {'x': x, 'y': y, 'x_val': x_val, 'y_val': y_val, 'x_test': x_test, 'y_test': y_test, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
 
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w2.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w4_limited.pickle'])), 'wb')
     pickle.dump(data, file_data)
     file_data.close()

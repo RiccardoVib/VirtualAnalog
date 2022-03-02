@@ -31,8 +31,8 @@ def plot_result(data_dir, save):
     #    index *= 16
 
     N = len(audio_pred)
-    audio_pred = audio_pred[N//2:-N//4]
-    audio_tar = audio_tar[N//2:-N//4]
+    audio_pred = audio_pred[N//2:N//2+1600]
+    audio_tar = audio_tar[N//2:N//2+1600]
     #audio_tar_ = audio_tar_[0]
     #audio_pred_ = audio_pred_[0]
     #audio_pred_ = audio_pred_[0: 1600]
@@ -95,12 +95,17 @@ if __name__ == '__main__':
     data_dir_Dense_3 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_3/WavPredictions'
     DenseFeed_Testing_48_1_layer_sig = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_48_1_layer_sig/WavPredictions'
     DenseFeed_Testing_getdata2_48_input1 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_getdata2_48_input1/WavPredictions'
+    LSTM_enc_dec_2 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_2/WavPredictions'
+
+
+
     #plot_result(data_dir=data_dir_ed, save=True)
     #plot_result(data_dir=data_dir_eds, save=True)
     #plot_result(data_dir=data_dir_LSTM, save=True)
     #plot_result(data_dir=data_dir_LSTMs, save=True)
     #plot_result(data_dir=data_dir_LSTMsT_1, save=True)
-    plot_result(data_dir=DenseFeed_Testing_48_1_layer_sig, save=True)
+    #plot_result(data_dir=DenseFeed_Testing_48_1_layer_sig, save=True)
     #plot_result(data_dir=DenseFeed_Testing_getdata2_48_input1, save=True)
     #plot_result(data_dir=data_dir_Dense, save=True)#esr:0.5543166281246964
     #plot_result(data_dir=data_dir_Dense_3, save=True)#esr:5568089993155195
+    plot_result(data_dir=LSTM_enc_dec_2, save=True)#esr:5568089993155195

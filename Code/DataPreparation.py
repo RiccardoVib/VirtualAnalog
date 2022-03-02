@@ -19,14 +19,17 @@ def data_preparation(**kwargs):
     save_dir = kwargs.get('save_dir', '/Users/riccardosimionato/Datasets/VA/VA_results')
     file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, '*.wav'])))
 
-    #L = 32000000 #se 96kHz
-    L = 32000000#se 48kHz
+
+    #L = 32000000#se 48kHz
+    L = 31000000
+
     #L = 32097856##10699286-100 #32097856#MAX=34435680
     #L = 5349643-100 #se 16kHz
     inp_collector, tar_collector, ratio_collector, threshold_collector = [], [], [], []
     inp_test, tar_test, ratio_test, threshold_test = [], [], [], []
     fs = 0
 
+    inp_collector_never_seen, tar_collector_never_seen, ratio_collector_never_seen, threshold_collector_never_seen = [], [], [], []
     test_rec = False
     for file in file_dirs:
 
@@ -41,6 +44,9 @@ def data_preparation(**kwargs):
         inp = audio_stereo[:L, 0].astype(np.float32)
         tar = audio_stereo[1:L+1, 1].astype(np.float32)
 
+        inp_never_seen = audio_stereo[L:, 0].astype(np.float32)
+        tar_never_seen = audio_stereo[L+1:, 1].astype(np.float32)
+
         ratio = str(ratio)
         if len(ratio) > 2:
             ratio = ratio[:2] + '.' + ratio[2:]
@@ -52,16 +58,17 @@ def data_preparation(**kwargs):
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
 
+        inp_never_seen = signal.resample_poly(inp_never_seen, 1, factor)
+        tar_never_seen = signal.resample_poly(tar_never_seen, 1, factor)
+
         ratio = float(ratio)
         threshold = float(threshold)
         #tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
 
-        #if len(tar) > L:
-        #    inp = inp[0:L]
-        #    tar = tar[0:L]
-
-        #if len(inp) < L:
-        #    L = len(inp)
+        inp_collector_never_seen.append(inp_never_seen)
+        tar_collector_never_seen.append(tar_never_seen)
+        ratio_collector_never_seen.append(ratio)
+        threshold_collector_never_seen.append(np.abs(threshold))
 
         if test_rec == False:
             inp_collector.append(inp)
@@ -86,31 +93,45 @@ def data_preparation(**kwargs):
 #        plt.plot(time, tar)
 #        plt.show()
 
+    # train files
     metadatas = {'ratio': ratio_collector, 'threshold': threshold_collector, 'samplerate': fs/factor}
     data = {'inp': inp_collector, 'tar': tar_collector}
-
+    # test files
     metadatas_test = {'ratio': ratio_test, 'threshold': threshold_test, 'samplerate': fs/factor}
     data_test = {'inp': inp_test, 'tar': tar_test}
+    # never seen files
+    metadatas_never_seen = {'ratio': ratio_collector_never_seen, 'threshold': threshold_collector_never_seen, 'samplerate': fs/factor}
+    data_never_seen = {'inp': inp_collector_never_seen, 'tar': tar_collector_never_seen}
 
     # open a file, where you ant to store the data
-    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas48_train.pickle'])), 'wb')
-    file_data = open(os.path.normpath('/'.join([save_dir,'data48_train.pickle'])), 'wb')
-
-    file_metadatas_test = open(os.path.normpath('/'.join([save_dir,'metadatas48_test.pickle'])), 'wb')
-    file_data_test = open(os.path.normpath('/'.join([save_dir,'data48_test.pickle'])), 'wb')
+    # train files
+    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas48_train_2.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([save_dir,'data48_train_2.pickle'])), 'wb')
+    # test files
+    file_metadatas_test = open(os.path.normpath('/'.join([save_dir,'metadatas48_test_2.pickle'])), 'wb')
+    file_data_test = open(os.path.normpath('/'.join([save_dir,'data48_test_2.pickle'])), 'wb')
+    # never seen files
+    file_metadatas_never_seen = open(os.path.normpath('/'.join([save_dir,'metadatas48_never_seen.pickle'])), 'wb')
+    file_data_never_seen = open(os.path.normpath('/'.join([save_dir,'data48_never_seen.pickle'])), 'wb')
 
     # dump information to that file
+    #train files
     pickle.dump(metadatas, file_metadatas)
     pickle.dump(data, file_data)
-
+    #test files
     pickle.dump(metadatas_test, file_metadatas_test)
     pickle.dump(data_test, file_data_test)
+    #never seen files
+    pickle.dump(metadatas_never_seen, file_metadatas_never_seen)
+    pickle.dump(data_never_seen, file_data_never_seen)
 
     # close the file
     file_metadatas.close()
     file_data.close()
     file_metadatas_test.close()
     file_data_test.close()
+    file_metadatas_never_seen.close()
+    file_data_never_seen.close()
 
 if __name__ == '__main__':
 

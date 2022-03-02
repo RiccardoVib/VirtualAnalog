@@ -97,6 +97,8 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         else:
             print("Initializing random weights.")
 
+    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=20, restore_best_weights=True,                                                             verbose=0)
+    callbacks += [early_stopping_callback]
     #train the RNN
 
     results = model.fit([x], y, batch_size=16, epochs=epochs,
