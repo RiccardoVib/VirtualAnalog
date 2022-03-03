@@ -14,37 +14,39 @@ import pickle
 
 
 
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+#from tensorflow.compat.v1 import ConfigProto
+#from tensorflow.compat.v1 import InteractiveSession
+#config = ConfigProto()
+#config.gpu_options.allow_growth = True
+#session = InteractiveSession(config=config)
+
 
 # generate target given source sequence
 def predict_sequence(encoder_model, decoder_model, input_seq, n_steps, output_dim, last_pred):
     # encode
-    input_seq = input_seq.reshape(1,2,3)
+    input_seq = input_seq.reshape(1, 2, 3)
     state = encoder_model.predict(input_seq)
     # start of sequence input
-    target_seq = np.zeros((1,1, output_dim))#.reshape(1, 1, output_dim)
+    target_seq = np.zeros((1, 1, output_dim))  # .reshape(1, 1, output_dim)
     last_prediction = last_pred
-    target_seq[0,0,0] = last_prediction
+    target_seq[0, 0, 0] = last_prediction
     # collect predictions
     output = []
     for t in range(n_steps):
         # predict next char
         yhat, h, c = decoder_model.predict([target_seq] + state)
         # store prediction
-        output.append(yhat[0,0,:])
+        output.append(yhat[0, 0, :])
         # update state
         state = [h, c]
         # update target sequence
         target_seq = yhat
-        last_prediction = yhat[0,0,:]
-            
+        last_prediction = yhat[0, 0, :]
+
     output = np.array(output)
     return output, last_prediction
-    
+
+
 def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     
     ckpt_flag = kwargs.get('ckpt_flag', False)
@@ -169,11 +171,11 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
     print('Test Loss: ', test_loss)
     
-    predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
+    #predictions_test = model.predict([x_test, y_test[:, :-1]], batch_size=b_size)
 
-    final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
-    y_s = np.reshape(y_test[:, 1:], (-1))
-    y_pred = np.reshape(predictions_test,(-1))
+    #final_model_test_loss = model.evaluate([x_test, y_test[:, :-1]], y_test[:, 1:], batch_size=b_size, verbose=0)
+    #y_s = np.reshape(y_test[:, 1:], (-1))
+    #y_pred = np.reshape(predictions_test,(-1))
     #r_squared = coefficient_of_determination(y_s[:1600], y_pred[:1600])
     
     if inference:
@@ -189,8 +191,8 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'opt_type': opt_type,
             'loss_type': loss_type,
             'shuffle_data': shuffle_data,
-            'layers': layers_enc,
-            'layers': layers_dec,
+            'layers_enc': layers_enc,
+            'layers_dec': layers_dec,
             'n_units_enc': n_units_enc,
             'n_units_dec': n_units_dec,
             'n_record': n_record,
@@ -219,24 +221,36 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     decoder_states = [state_h, state_c]
     decoder_outputs = decoder_dense(decoder_outputs)
     decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
-        
-    
-    
-    
+
+    x_gen = x_test
+    y_gen = y_test
+
     if inference:
+        start = time.time()
         last_prediction = 0
         predictions = []
         output_dim = 1
-        for b in range(x_test.shape[0]):
-            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b,:,:], x_test.shape[1], output_dim, last_prediction)
+        for b in range(1600):  # range(x_test.shape[0]):
+            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], x_test.shape[1],
+                                                    output_dim, last_prediction)
             predictions.append(out)
+            end = time.time()
+            print(end - start)
+
+            x_ = np.zeros((1,2,3))
+            x_[0, 0, 0] = x_test[b, 1, 0]
+            x_[0, 1, 0] = x_test[b+1, 0, 0]
+            x_[0, :, 1] = x_test[b, 0, 1]
+            x_[0, :, 2] = x_test[b, 0, 2]
+            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_,
+                                                    x_test.shape[1],
+                                                    output_dim, last_prediction)
+            predictions.append(out)
+        predictions = np.array(predictions)
     else:
         predictions = model.predict([x_gen, y_gen[:, :-1]])
         print('GenerateWavLoss: ', model.evaluate([x_gen, y_gen[:, :-1]], y_gen[:, 1:], batch_size=b_size, verbose=0))
-    #
-    x_gen = x_test
-    y_gen = y_test
-    
+
     predictions = scaler[0].inverse_transform(predictions)
     x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
     y_gen = scaler[0].inverse_transform(y_gen[:, 1:])
@@ -269,7 +283,7 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 
 if __name__ == '__main__':
-    data_dir = '/scratch/users/riccarsi/Files'
+    data_dir = '../Files'
     file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w2.pickle'])), 'rb')
     data = pickle.load(file_data)
     
@@ -277,8 +291,8 @@ if __name__ == '__main__':
     #start = time.time()
     inferenceLSTM(data_dir=data_dir,
               data=data,
-              model_save_dir='/scratch/users/riccarsi/TrainedModels',
-              save_folder='LSTM_enc_dec',
+              model_save_dir='/Users/riccardosimionato/PycharmProjects/All_Results/Giusti',
+              save_folder='LSTM_enc_dec_2_copy',
               ckpt_flag=True,
               b_size=128,
               learning_rate=0.0001,
