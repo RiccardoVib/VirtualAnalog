@@ -128,8 +128,8 @@ def get_data(data_dir, w_length, seed=422):
 
     for t in range(inp.shape[1] // window):
         inp_temp = np.array(
-            [inp[0, t * window:t * window + window], np.repeat(tone[i], window),
-                                 np.repeat(drive[i], window), np.repeat(mode[i], window)])
+            [inp[0, t * window:t * window + window], np.repeat(tone[0], window),
+                                 np.repeat(drive[0], window), np.repeat(mode[0], window)])
         all_inp.append(inp_temp.T)
         tar_temp = np.array(tar[0, t * window:t * window + window])
         all_tar.append(tar_temp.T)
@@ -167,6 +167,6 @@ if __name__ == '__main__':
 
     data = {'x': x, 'y': y, 'x_val': x_val, 'y_val': y_val, 'x_test': x_test, 'y_test': y_test, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
 
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_OD300_w1.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_OD300_w2.pickle'])), 'wb')
     pickle.dump(data, file_data)
     file_data.close()
