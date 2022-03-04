@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 from TrainFunctionality import error_to_signal_ratio
 from sklearn.metrics import r2_score
 import librosa
+import sklearn
 import audio_format
+import IPython.display as Ipd
 #
 def plot_result(data_dir, save):
     file_tar = glob.glob(os.path.normpath('/'.join([data_dir, '*_tar.wav'])))
@@ -43,6 +45,7 @@ def plot_result(data_dir, save):
     #print(r2_)
     #audio_tar_dense = audio_tar_dense[1600:1600*2]
     #audio_pred_dense = audio_pred_dense[1600:1600*2]
+    print('Coefficient of determination (r2 score): %.4f' % sklearn.metrics.r2_score(audio_tar, audio_pred))
 
     time = np.linspace(0, len(audio_tar) / fs, num=len(audio_tar))
     N = len(audio_tar)
@@ -84,6 +87,12 @@ def plot_result(data_dir, save):
         #fig.savefig(fname)
 
     #plt.close(fig)
+
+    plt.plot(audio_tar)
+    plt.title('v')
+    plt.show()
+    Ipd.display(Ipd.Audio(audio_tar, rate=48000))
+
 
 if __name__ == '__main__':
     data_dir_ed = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_no_sig_Testing/WavPredictions'

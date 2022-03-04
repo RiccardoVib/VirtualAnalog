@@ -152,8 +152,11 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             # print('Starting from epoch: ', start_epoch + 1)
         else:
             print("Initializing random weights.")
-            
-    
+
+    save_model_best = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_2/Checkpoints'
+    best = tf.train.latest_checkpoint(save_model_best)
+    model.load_weights(best)
+
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=20, restore_best_weights=True, verbose=0)
     callbacks += [early_stopping_callback]
 
@@ -162,6 +165,11 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=b_size, epochs=epochs, verbose=0,
                             validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]),
                             callbacks=callbacks)
+        # plotting the loss curve over training iteration
+        plt.plot(model.loss_curve_)
+        plt.xlabel('iteration')
+        plt.xlabel('loss')
+        plt.show()
 
     if ckpt_flag:
         best = tf.train.latest_checkpoint(ckpt_dir)
@@ -226,16 +234,16 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     y_gen = y_test
 
     if inference:
-        start = time.time()
+        #start = time.time()
         last_prediction = 0
         predictions = []
         output_dim = 1
-        for b in range(1600):  # range(x_test.shape[0]):
+        for b in range(x_test.shape[0]//4):
             out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], x_test.shape[1],
                                                     output_dim, last_prediction)
             predictions.append(out)
-            end = time.time()
-            print(end - start)
+            #end = time.time()
+            #print(end - start)
 
             x_ = np.zeros((1,2,3))
             x_[0, 0, 0] = x_test[b, 1, 0]
