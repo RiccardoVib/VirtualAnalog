@@ -62,7 +62,7 @@ def inferenceLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     drop = kwargs.get('drop', 0.)
     opt_type = kwargs.get('opt_type', 'Adam')
     inference = kwargs.get('inference', False)
-    loss_type = kwargs.get('loss_type', 'mae')
+    loss_type = kwargs.get('loss_type', 'mse')
     shuffle_data = kwargs.get('shuffle_data', False)
     w_length = kwargs.get('w_length', 16)
     n_record = kwargs.get('n_record', 1)
