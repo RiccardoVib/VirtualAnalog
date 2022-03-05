@@ -125,8 +125,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #train the RNN
     if not inference:
-        results = model.fit(x, y, batch_size=b_size, epochs=epochs,  verbose=0,
-                        validation_data=(x_val, y_val),
+        results = model.fit(x, y[:, 0], batch_size=b_size, epochs=epochs,  verbose=0,
+                        validation_data=(x_val, y_val[:, 0]),
                         #callbacks=tensorboard_callback)
                         callbacks=callbacks)
         # plotting the loss curve over training iteration
@@ -178,10 +178,10 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_test
         y_gen = y_test
         predictions = model.predict(x_gen)
-        print('GenerateWavLoss: ', model.evaluate(x_gen, y_gen, batch_size=b_size, verbose=0))
+        print('GenerateWavLoss: ', model.evaluate(x_gen, y_gen[:, 0], batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
-        y_gen = scaler[0].inverse_transform(y_gen)
+        y_gen = scaler[0].inverse_transform(y_gen[:, 0])
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
@@ -203,9 +203,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         predictions = predictions.astype('int16')
         x_gen = x_gen.astype('int16')
         y_gen = y_gen.astype('int16')
-        wavfile.write(pred_dir, 16000, predictions)
-        wavfile.write(inp_dir, 16000, x_gen)
-        wavfile.write(tar_dir, 16000, y_gen)
+        wavfile.write(pred_dir, 48000, predictions)
+        wavfile.write(inp_dir, 48000, x_gen)
+        wavfile.write(tar_dir, 48000, y_gen)
 
     return results
 
