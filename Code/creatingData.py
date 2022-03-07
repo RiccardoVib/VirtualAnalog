@@ -15,9 +15,9 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     # -----------------------------------------------------------------------------------------------------------------
     # Load data
     # -----------------------------------------------------------------------------------------------------------------
-
-    data_1 = open(os.path.normpath('/'.join([data_dir, 'data_1.pickle'])), 'rb')
-    data_2 = open(os.path.normpath('/'.join([data_dir, 'data_2.pickle'])), 'rb')
+#260000000
+    data_1 = open(os.path.normpath('/'.join([data_dir, 'data_OD300_1.pickle'])), 'rb')
+    data_2 = open(os.path.normpath('/'.join([data_dir, 'data_OD300_2.pickle'])), 'rb')
 
     Z1 = pickle.load(data_1)
     Z2 = pickle.load(data_2)
