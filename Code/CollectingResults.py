@@ -65,7 +65,7 @@ scaler = data['scaler']
 # time_s = measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
 
 
-# name = ['sweep', 'guitar', 'drum Kick', 'drum HH', 'Bass']
+# name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
 # sec = [32, 135, 238, 240.9, 308.7]
 # sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
 # for l in range(len(name)):
@@ -84,40 +84,41 @@ name = 'LSTM_enc_dec_v2'
 T = x_test.shape[1]
 enc_units = [8]
 dec_units = [8]
+
 #model = load_model_lstm_enc_dec_v2(T=T, encoder_units=enc_units, decoder_units=dec_units, drop=0., model_save_dir=data_dir)
 #time_s = measure_time(model=model, x_test=x_test, y_test=x_test, enc_dec=True, v2=True, data_dir=data_dir, fs=fs, scaler=scaler, T=T)
 
-name = ['sweep', 'guitar', 'drum Kick', 'drum HH', 'Bass']
+sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
 sec = [32, 135, 238, 240.9, 308.7]
 sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
-for l in range(len(name)):
+for l in range(len(sig_name)):
     start = int(sec[l] * fs)
     end = int(sec_end[l] * start)
     #inferenceLSTM_enc_dec_v2(data_dir=data_dir, x_test=x_test, y_test=y_test, model=model, fs=fs, scaler=scaler, start=start, end=end, T=T, name=name[l], generate=True)
 
-data_dir = os.path.normpath(os.path.join(data_dir, 'WavPredictions'))
 all_results = []
-for l in range(len(name)):
-    file_tar = glob.glob(os.path.normpath('/'.join([data_dir_ref, name[l] + '_tar.wav'])))
-    file_pred = glob.glob(os.path.normpath('/'.join([data_dir, name[l] + '_pred.wav'])))
+for l in range(len(sig_name)):
+    file_tar = glob.glob(os.path.normpath('/'.join([data_dir_ref, sig_name[l] + '_tar.wav'])))
+    file_pred = glob.glob(os.path.normpath('/'.join([data_dir, sig_name[l] + '_pred.wav'])))
     for file in file_tar:
         fs, audio_tar = wavfile.read(file)
     for file in file_pred:
         _, audio_pred = wavfile.read(file)
 
     audio_tar = audio_format.pcm2float(audio_tar)
+    audio_tar = audio_tar[:-2]
     audio_pred = audio_format.pcm2float(audio_pred)
     results = measure_performance(audio_tar, audio_pred, name)
-
     all_results.append(results)
-    with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-        for res in all_results:
-            print('\n', 'Sound', '  : ', name[l], file=f)
-            for key, value in res.items():
-                print('\n', key, '  : ', value, file=f)
+    plot_time(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
+    plot_fft(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
 
-    for l in range(len(name)):
-        start = int(sec[l] * fs)
-        end = int(sec_end[l] * start)
-        plot_time(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec_v2' + name[l])
-        plot_fft(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec_v2' + name[l])
+with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
+    i=0
+    for res in all_results:
+        print('\n', 'Sound', '  : ', sig_name[i], file=f)
+        i=i+1
+        for key, value in res.items():
+            print('\n', key, '  : ', value, file=f)
+
+

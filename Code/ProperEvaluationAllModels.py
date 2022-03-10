@@ -123,7 +123,7 @@ def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
     return inp, tar, fs
 
 def prediction_accuracy(tar, pred, fs, data_dir, name):
-    sig_name = ['_sweep_', '_guitar_', '_drum Kick_', '_drum HH_', '_bass_']
+    sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
     sec = [32, 135, 238, 240.9, 308.7]
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
     for l in range(len(name)):
@@ -134,7 +134,7 @@ def prediction_accuracy(tar, pred, fs, data_dir, name):
 
 def create_ref(data_dir='/Users/riccardosimionato/PycharmProjects/All_Results'):
     inp, tar, fs = load_ref()
-    sig_name = ['_sweep_', '_guitar_', '_drum Kick_', '_drum HH_', '_bass_']
+    sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
     sec = [32, 135, 238, 240.9, 308.7]
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
     for l in range(len(sig_name)):
