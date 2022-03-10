@@ -195,8 +195,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             'opt_type': opt_type,
             'loss_type': loss_type,
             'shuffle_data': shuffle_data,
-            'layers': layers_enc,
-            'layers': layers_dec,
+            'layers_enc': layers_enc,
+            'layers_dec': layers_dec,
             'n_units_enc': n_units_enc,
             'n_units_dec': n_units_dec,
             'n_record': n_record,
@@ -213,22 +213,27 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             pickle.dump(results, open(os.path.normpath('/'.join([model_save_dir, save_folder, 'results.pkl'])), 'wb'))
         
     if inference:
-        x_ = x_test[:, :, 0].reshape(-1)
-        y_ = scaler[0].inverse_transform(y_test[:, -1])
-        conditions = [x_test[0, 0, 1], x_test[0, 0, 2]]
-        output = []
-        for t in range(x_.shape[0]):
-            x_i_f = []
-            for f in range(T):
-                x_i = np.array([x_[f+t:f+t+T-1], np.repeat(x_test[0, 0, 1], T-1), np.repeat(x_test[0, 0, 2], T-1)])
-                x_i_f.append(x_i.T)
-            x_i_f = np.array(x_i_f)
-            predictions = model.predict([x_i_f, x_[t+T].reshape(-1, 1)])
-            output.append(predictions)
+        n_past = T - 1
+        predictions = []
+        x_ = x_test.reshape(1, -1, 3)
+        for b in range(x_.shape[1] - 2 * T):
+            x_i = np.array(x_[:, b:b + n_past, :])
+            x_i = x_i.reshape(1,7,3)
+            start = time.time()
+            out = model.predict([x_i, x_[:, b + T, 0].reshape(1,1,1)])
+            predictions.append(out)
+            end = time.time()
+            print(end - start)
 
-        output = np.array(output)
-        x_ = scaler[0].inverse_transform(x_)
-        output = scaler[0].inverse_transform(output)
+        predictions = np.array(predictions)
+        predictions = scaler[0].inverse_transform(predictions)
+        predictions = predictions.reshape(-1)
+        x_gen = x_test
+        y_gen = y_test
+        x_gen = scaler[0].inverse_transform(x_gen[:, :, 0])
+        y_gen = scaler[0].inverse_transform(y_gen)
+        x_gen = x_gen.reshape(-1)
+        y_gen = y_gen.reshape(-1)
 
         pred_name = 'predictions.wav'
         inp_name = 'inp.wav'
@@ -238,19 +243,19 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
         tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
 
-        output = output.astype('int16')
-        x_ = x_.astype('int16')
-        y_ = y_.astype('int16')
-        wavfile.write(pred_dir, 48000, output)
-        wavfile.write(inp_dir, 48000, x_)
-        wavfile.write(tar_dir, 48000, y_)
+        predictions = predictions.astype('int16')
+        x_gen = x_gen.astype('int16')
+        y_gen = y_gen.astype('int16')
+        wavfile.write(pred_dir, 48000, predictions)
+        wavfile.write(inp_dir, 48000, x_gen)
+        wavfile.write(tar_dir, 48000, y_gen)
 
-    if generate_wav is not None:
+    if not inference:
         np.random.seed(seed)
         x_gen = x_test
         y_gen = y_test
-        predictions = model.predict([x_gen[:,:-1,:], x_gen[:, -1, 0].reshape(-1,1)])
-        print('GenerateWavLoss: ', model.evaluate([x_gen[:,:-1,:], x_gen[:, -1, 0].reshape(-1,1)], y_gen[:, -1], batch_size=b_size, verbose=0))
+        predictions = model.predict([x_gen[:, :-1, :], x_gen[:, -1, 0].reshape(-1,1)])
+        print('GenerateWavLoss: ', model.evaluate([x_gen[:, :-1, :], x_gen[:, -1, 0].reshape(-1,1)], y_gen[:, -1], batch_size=b_size, verbose=0))
         predictions = scaler[0].inverse_transform(predictions)
         x_gen = scaler[0].inverse_transform(x_gen[:, -1, 0])
         y_gen = scaler[0].inverse_transform(y_gen[:, -1])
@@ -297,7 +302,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
 if __name__ == '__main__':
     data_dir = '../Files'
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w16.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w8.pickle'])), 'rb')
     data = pickle.load(file_data)
     
     seed = 422
@@ -305,7 +310,7 @@ if __name__ == '__main__':
     trainLSTM(data_dir=data_dir,
               data=data,
               model_save_dir='/Users/riccardosimionato/PycharmProjects/All_Results/Giusti',
-              save_folder='LSTM_enc_dec_v2',
+              save_folder='LSTM_enc_dec_v2_8',
               ckpt_flag=True,
               b_size=128,
               learning_rate=0.0001,

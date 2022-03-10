@@ -34,13 +34,13 @@ def plot_result(data_dir, save):
 
     N = len(audio_pred)
     # = audio_pred[N//2:N//2+1600]
-    audio_tar = audio_tar[96000:384000]
+    #audio_tar = audio_tar[96000:384000]
     #audio_tar_ = audio_tar_[0]
     #audio_pred_ = audio_pred_[0]
     #audio_pred_ = audio_pred_[0: 1600]
     #audio_tar_ = audio_tar_[:len(audio_pred_)]
 
-    #print(error_to_signal_ratio(audio_tar, audio_pred))
+    print('ESR: %.4f' % error_to_signal_ratio(audio_tar, audio_pred))
     #r2_ = r2_score(audio_tar[:1600], audio_pred[:1600])
     #print(r2_)
     #audio_tar_dense = audio_tar_dense[1600:1600*2]
@@ -71,8 +71,8 @@ def plot_result(data_dir, save):
 
     fig, ax = plt.subplots(2,1)
     plt.suptitle("Target vs Prediction - Frequency Domain")
-    ax[0].plot(freqs, 20*np.log10(np.abs(fft_tar)), 'b', label='Target')
-    ax[1].plot(freqs, 20*np.log10(np.abs(fft_pred)), 'r', label='Prediction')
+    ax[0].plot(freqs, 20*np.log10(np.divide(np.abs(fft_tar), np.max(np.abs(fft_tar)))), 'b', label='Target')
+    ax[1].plot(freqs, 20*np.log10(np.divide(np.abs(fft_pred), np.max(np.abs(fft_pred)))), 'r', label='Prediction')
     ax[0].set_xlabel('Frequency')
     ax[1].set_xlabel('Frequency')
     ax[0].set_ylabel('Magnitude (dB)')
@@ -104,8 +104,8 @@ if __name__ == '__main__':
     data_dir_Dense_3 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_3/WavPredictions'
     DenseFeed_Testing_48_1_layer_sig = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_48_1_layer_sig/WavPredictions'
     DenseFeed_Testing_getdata2_48_input1 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/DenseFeed_Testing_getdata2_48_input1/WavPredictions'
-    LSTM_enc_dec_2 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_2/WavPredictions'
-    LSTM_enc_dec_prova_infere = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_prova_infere/WavPredictions'
+    LSTM_enc_dec = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec/WavPredictions'
+    LSTM_enc_dec_v2_2 = '/Users/riccardosimionato/PycharmProjects/All_Results/Giusti/LSTM_enc_dec_v2_16/WavPredictions'
 
 
 
@@ -118,5 +118,8 @@ if __name__ == '__main__':
     #plot_result(data_dir=DenseFeed_Testing_getdata2_48_input1, save=True)
     #plot_result(data_dir=data_dir_Dense, save=True)#esr:0.5543166281246964
     #plot_result(data_dir=data_dir_Dense_3, save=True)#esr:5568089993155195
-    #plot_result(data_dir=LSTM_enc_dec_2, save=True)#esr:5568089993155195
-    plot_result(data_dir=LSTM_enc_dec_prova_infere, save=True)#esr:5568089993155195
+
+    # LSTM_enc_dec
+    plot_result(data_dir=LSTM_enc_dec, save=True)
+    # LSTM_enc_dec_v2
+    #plot_result(data_dir=LSTM_enc_dec_v2_2, save=True)

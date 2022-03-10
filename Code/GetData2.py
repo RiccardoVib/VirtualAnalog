@@ -18,6 +18,8 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_train_2.pickle'])), 'rb')
     file_data = open(os.path.normpath('/'.join([data_dir, 'data48_train_2.pickle'])), 'rb')
 
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_never_seen.pickle'])), 'rb')
+
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']
