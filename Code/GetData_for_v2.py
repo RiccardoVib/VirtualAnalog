@@ -6,7 +6,7 @@ import numpy as np
 from Preprocess import my_scaler
 
 
-def get_data(data_dir, start, end, T, seed=422):
+def get_data(data_dir, start, stop, T, seed=422):
     np.random.seed(seed)
     tf.random.set_seed(seed)
     random.seed(seed)
@@ -63,9 +63,9 @@ def get_data(data_dir, start, end, T, seed=422):
     inp = Z['inp']
     tar = Z['tar']
     inp = np.array(inp, dtype=np.float32)
-    inp = inp[:, start:end]
+    inp = inp[:, start:stop]
     tar = np.array(tar, dtype=np.float32)
-    tar = tar[:, start:end]
+    tar = tar[:, start:stop]
     M = pickle.load(meta)
     ratios = M['ratio']
     threshold = M['threshold']

@@ -14,7 +14,7 @@ from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow.keras.models import Model
 import tensorflow as tf
 from InferenceLSTM import predict_sequence
-
+#plotting
 def plot_time(audio_tar, audio_pred, fs, data_dir, name):
     time = np.linspace(0, len(audio_tar) / fs, num=len(audio_tar))
 
@@ -29,7 +29,6 @@ def plot_time(audio_tar, audio_pred, fs, data_dir, name):
 
     fname = os.path.normpath(os.path.join(data_dir, name + '_time.png'))
     fig.savefig(fname)
-
 def plot_fft(audio_tar, audio_pred, fs, data_dir, name):
     N = len(audio_tar)
     fft_tar = fft.fftshift(fft.fft(audio_tar))[N // 2:]
@@ -50,13 +49,13 @@ def plot_fft(audio_tar, audio_pred, fs, data_dir, name):
 
     fname = os.path.normpath(os.path.join(data_dir, name + '_fft.png'))
     fig.savefig(fname)
-
+#measuring
 def measure_time(model, x_test, y_test, enc_dec, v2, data_dir, fs, scaler, T):
 
     if enc_dec:
         if v2:
             start = time.time()
-            inferenceLSTM_enc_dec_v2(data_dir=data_dir, x_test=x_test, y_test=y_test, model=model, fs=fs, scaler=scaler, T=T, start=0, end=x_test.shape[0], name='test_time', generate=False)
+            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, T=T, start=0, stop=x_test.shape[0], name='test_time', generate=False)
             end = time.time()
             time_s = (end - start)/x_test.shape[0]
             print('Time: %.6f' % time_s)
@@ -64,7 +63,7 @@ def measure_time(model, x_test, y_test, enc_dec, v2, data_dir, fs, scaler, T):
             encoder_model = model[0]
             decoder_model = model[1]
             start = time.time()
-            inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, 0, 1, 'test_time', False, encoder_model, decoder_model)
+            inferenceLSTM_enc_dec(data_dir=data_dir, fs=fs, x_test=x_test, y_test=y_test, scaler=scaler, start=0, stop=1, name='test_time', generate=False, model=model, time=0, measuring=True)
             end = time.time()
             time_s = end - start
             print('Time: %.6f' % time_s)
@@ -78,7 +77,6 @@ def measure_time(model, x_test, y_test, enc_dec, v2, data_dir, fs, scaler, T):
     with open(os.path.normpath('/'.join([data_dir, 'performance_time.txt'])), 'w') as f:
         print('Time: %.6f' % time_s, file=f)
     return time_s
-
 def measure_performance(audio_tar, audio_pred, name):
 
     ESR = error_to_signal_ratio(audio_tar, audio_pred)
@@ -92,7 +90,7 @@ def measure_performance(audio_tar, audio_pred, name):
         'r2': r2
     }
     return results
-
+#loading
 def load_audio(data_dir):
     data_dir = os.path.normpath(os.path.join(data_dir, 'WavPredictions'))
     file_tar = glob.glob(os.path.normpath('/'.join([data_dir, '*_tar.wav'])))
@@ -107,7 +105,6 @@ def load_audio(data_dir):
     audio_tar = audio_format.pcm2float(audio_tar)
     audio_pred = audio_format.pcm2float(audio_pred)
     return audio_tar, audio_pred, fs
-
 def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
 
     L = 31000000
@@ -121,17 +118,16 @@ def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
         tar = signal.resample_poly(tar, 1, 2)
         fs = fs // 2
     return inp, tar, fs
-
+#test samples
 def prediction_accuracy(tar, pred, fs, data_dir, name):
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
     sec = [32, 135, 238, 240.9, 308.7]
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
     for l in range(len(name)):
         start = int(sec[l] * fs)
-        end = int(sec_end[l] * start)
-        plot_time(tar[start:end], pred[start:end], fs, data_dir, name + sig_name[l])
-        plot_fft(tar[start:end], pred[start:end], fs, data_dir, name + sig_name[l])
-
+        stop = int(sec_end[l] * start)
+        plot_time(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
+        plot_fft(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
 def create_ref(data_dir='/Users/riccardosimionato/PycharmProjects/All_Results'):
     inp, tar, fs = load_ref()
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
@@ -139,16 +135,16 @@ def create_ref(data_dir='/Users/riccardosimionato/PycharmProjects/All_Results'):
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
     for l in range(len(sig_name)):
         start = int(sec[l] * fs)
-        end = int(sec_end[l] * start)
-        inp_ = inp[start:end].astype('int16')
-        tar_ = tar[start:end].astype('int16')
+        stop = int(sec_end[l] * start)
+        inp_ = inp[start:stop].astype('int16')
+        tar_ = tar[start:stop].astype('int16')
         inp_name = sig_name[l] + '_inp.wav'
         tar_name = sig_name[l] + '_tar.wav'
         inp_dir = os.path.normpath(os.path.join(data_dir, inp_name))
         tar_dir = os.path.normpath(os.path.join(data_dir, tar_name))
         wavfile.write(inp_dir, int(fs), inp_)
         wavfile.write(tar_dir, int(fs), tar_)
-
+#loading models
 def load_model_dense(T,units,drop,model_save_dir):
 
     inputs = Input(shape=(T,3), name='input')
@@ -218,21 +214,21 @@ def load_model_lstm_enc_dec(T,encoder_units, decoder_units,drop, model_save_dir)
     first_unit_decoder = decoder_units.pop(0)
     if len(decoder_units) > 0:
         last_unit_decoder = decoder_units.pop()
-        decoder_lstm = LSTM(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)(decoder_inputs,
-                                                                                                 initial_state=encoder_states)
+        decoder_lstm = LSTM(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)
+        outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
         for i, unit in enumerate(decoder_units):
-            decoder_lstm = LSTM(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)(decoder_lstm)
-        decoder_lstm, _, _ = LSTM(last_unit_decoder, return_sequences=True, return_state=True, name='LSTM_DeFin',
-                             dropout=drop)(decoder_lstm)
+            decoder_lstm = LSTM(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)
+            outputs, _, _ = decoder_lstm(outputs)
+        decoder_lstm = LSTM(last_unit_decoder, return_sequences=True, return_state=True, name='LSTM_DeFin', dropout=drop)
+        outputs, _, _ = decoder_lstm(outputs)
     else:
-        decoder_lstm, _, _ = LSTM(first_unit_decoder, return_sequences=True, return_state=True, name='LSTM_De',
-                             dropout=drop)(
-            decoder_inputs,
-            initial_state=encoder_states)
+        decoder_lstm = LSTM(first_unit_decoder, return_sequences=True, return_state=True, name='LSTM_De', dropout=drop)
+        outputs, _, _ =decoder_lstm(decoder_inputs, initial_state=encoder_states)
     if drop != 0.:
-        decoder_lstm = tf.keras.layers.Dropout(drop, name='DropLayer')(decoder_lstm)
+        outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
     decoder_dense = Dense(1, activation='sigmoid', name='DenseLay')
-    decoder_output = decoder_dense(decoder_lstm)
+    decoder_output = decoder_dense(outputs)
+
     model = Model([encoder_inputs, decoder_inputs], decoder_output)
 
     ckpt_dir = os.path.normpath(os.path.join(model_save_dir, 'Checkpoints', 'best'))
@@ -296,31 +292,44 @@ def load_model_lstm_enc_dec_v2(T,encoder_units, decoder_units, drop, model_save_
     else:
         raise ValueError('Something wrong!')
     return model
+#inference
+def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, name, generate, model, time, measuring=False):
 
-def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, end, name, generate, encoder_model, decoder_model):
+    s1 = start//2
+    s2 = stop//2
+    hours=((s2-s1*time/60)/60)
+    days = hours/24
+    print('Number of samples to be generated: ', s2-s1)
+    print('Hours needed: ', hours)
+    print('Days needed: ', days)
 
-    last_prediction = 0  # y_test(0,0)#y(range_to_predicts[h],0)
+    last_prediction = y_test[s1, 0]
     predictions = [last_prediction]
     output_dim = 1
-    for b in range(start,end):
-        out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], y_test.shape[1],
-                                                            output_dim, last_prediction)
-        predictions.append(out)
-        x_ = np.zeros((1, 2, 3))
-        x_[0, 0, 0] = x_test[b, 1, 0]
-        x_[0, 1, 0] = x_test[b + 1, 0, 0]
-        x_[0, :, 1] = x_test[b, 0, 1]
-        x_[0, :, 2] = x_test[b, 0, 2]
-        out, last_prediction = predict_sequence(encoder_model, decoder_model, x_,
-                                                            y_test.shape[1],
-                                                            output_dim, last_prediction)
-        predictions.append(out)
+    n_steps = y_test.shape[1]-1
+    encoder_model = model[0]
+    decoder_model = model[1]
+
+    if measuring:
+        predict_sequence(encoder_model, decoder_model, x_test[0, :, :], n_steps, output_dim, last_prediction)
+    else:
+        for b in range(s1, s2):
+            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim, last_prediction)
+            predictions.append(out)
+            x_ = np.zeros((1, 2, 3))
+            x_[0, 0, 0] = x_test[b, 1, 0]
+            x_[0, 1, 0] = x_test[b + 1, 0, 0]
+            x_[0, :, 1] = x_test[b, 0, 1]
+            x_[0, :, 2] = x_test[b, 0, 2]
+            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_, n_steps, output_dim, last_prediction)
+            predictions.append(out)
+
 
     if generate:
         predictions = np.array(predictions)
         predictions = scaler[0].inverse_transform(predictions)
-        x_gen = scaler[0].inverse_transform(x_test[2*start : 2*end, :, 0])
-        y_gen = scaler[0].inverse_transform(y_test[2*start : 2*end])
+        x_gen = scaler[0].inverse_transform(x_test[s1:s2, :, 0])
+        y_gen = scaler[0].inverse_transform(y_test[s1:s2])
 
         predictions = predictions.reshape(-1)
         x_gen = x_gen.reshape(-1)
@@ -345,8 +354,8 @@ def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, end, name
         wavfile.write(pred_dir, int(fs), predictions)
         wavfile.write(inp_dir, int(fs), x_gen)
         wavfile.write(tar_dir, int(fs), y_gen)
-def inferenceLSTM_enc_dec_v2(data_dir, x_test, y_test, model, fs, scaler, T, start, end, name, generate):
-    x_, y_  = get_data(data_dir='../Files', start=start, end=end, T=T)
+def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, generate):
+    x_, y_  = get_data(data_dir='../Files', start=start, stop=stop, T=T)
     predictions = model.predict([x_[:, :-1, :], x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
 
     if generate:
@@ -354,7 +363,7 @@ def inferenceLSTM_enc_dec_v2(data_dir, x_test, y_test, model, fs, scaler, T, sta
         predictions = scaler[0].inverse_transform(predictions)
         predictions = predictions.reshape(-1)
         pred_name = name + '_pred.wav'
-        pred_dir = os.path.normpath(os.path.join(data_dir, 'WavPredictions', pred_name))
+        pred_dir = os.path.normpath(os.path.join(data_dir, pred_name))
         if not os.path.exists(os.path.dirname(pred_dir)):
             os.makedirs(os.path.dirname(pred_dir))
         predictions = predictions.astype('int16')
