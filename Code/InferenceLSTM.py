@@ -22,12 +22,12 @@ import pickle
 
 
 # generate target given source sequence
-def predict_sequence(encoder_model, decoder_model, input_seq, n_steps, output_dim, last_pred):
+def predict_sequence(encoder_model, decoder_model, input_seq, n_steps, output_dim, last_pred, window):
     # encode
-    input_seq = input_seq.reshape(1, 2, 3)
+    input_seq = input_seq.reshape(1, window, 3)
     state = encoder_model.predict(input_seq)
     # start of sequence input
-    target_seq = np.zeros((1, 1, output_dim))  # .reshape(1, 1, output_dim)
+    target_seq = np.zeros((1, output_dim, 1))  # .reshape(1, 1, output_dim)
     last_prediction = last_pred
     target_seq[0, 0, 0] = last_prediction
     # collect predictions

@@ -17,7 +17,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
     fs = data['fs']
     scaler = data['scaler']
 
-#create_ref()
+    #create_ref()
     # Dense-----------------------------------------------------------------------------------
     if architecture=='dense':
         dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/Dense_trials/'
@@ -74,8 +74,8 @@ def retrive_info(architecture, model_dir, units, drop, w):
         #data_dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_enc_dec_trials/LSTM_enc_dec_32_32'
         name = 'LSTM_enc_dec'
         T = x_test.shape[1]
-        enc_units = [32]
-        dec_units = [32]
+        enc_units = [units[0]]
+        dec_units = [units[1]]
 
         encoder_model, decoder_model = load_model_lstm_enc_dec(T, enc_units, dec_units, 0., model_save_dir=data_dir)
         model = [encoder_model, decoder_model]
@@ -100,7 +100,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
                 _, audio_pred = wavfile.read(file)
 
             audio_tar = audio_format.pcm2float(audio_tar)
-            audio_tar = audio_tar[:-2]
+            audio_tar = audio_tar[:-w]
             audio_pred = audio_format.pcm2float(audio_pred)
             results = measure_performance(audio_tar, audio_pred, name)
             all_results.append(results)
@@ -166,4 +166,4 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_16', units=[8, 8], drop=0., w=16)

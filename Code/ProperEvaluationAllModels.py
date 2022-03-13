@@ -196,7 +196,7 @@ def load_model_lstm(T,units,drop, model_save_dir):
     else:
         raise ValueError('Something wrong!')
     return model
-def load_model_lstm_enc_dec(T,encoder_units, decoder_units,drop, model_save_dir):
+def load_model_lstm_enc_dec(T, encoder_units, decoder_units,drop, model_save_dir):
     encoder_inputs = Input(shape=(T, 3), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
@@ -305,25 +305,32 @@ def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, nam
 
     last_prediction = y_test[s1, 0]
     predictions = [last_prediction]
-    output_dim = 1
+    output_dim = y_test.shape[1]-1
     n_steps = y_test.shape[1]-1
     encoder_model = model[0]
     decoder_model = model[1]
 
     if measuring:
-        predict_sequence(encoder_model, decoder_model, x_test[0, :, :], n_steps, output_dim, last_prediction)
+        predict_sequence(encoder_model, decoder_model, x_test[0, :, :], n_steps, output_dim, last_prediction, x_test.shape[1])
     else:
         for b in range(s1, s2):
-            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim, last_prediction)
-            predictions.append(out)
-            x_ = np.zeros((1, 2, 3))
-            x_[0, 0, 0] = x_test[b, 1, 0]
-            x_[0, 1, 0] = x_test[b + 1, 0, 0]
-            x_[0, :, 1] = x_test[b, 0, 1]
-            x_[0, :, 2] = x_test[b, 0, 2]
-            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_, n_steps, output_dim, last_prediction)
+            last_prediction = y_test[b, 0]
+            predictions = [last_prediction]
+            out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim,
+                                                    last_prediction, x_test.shape[1])
             predictions.append(out)
 
+    #     for b in range(s1, s2):
+    #         out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim, last_prediction)
+    #         predictions.append(out)
+    #         x_ = np.zeros((1, 2, 3))
+    #         x_[0, 0, 0] = x_test[b, 1, 0]
+    #         x_[0, 1, 0] = x_test[b + 1, 0, 0]
+    #         x_[0, :, 1] = x_test[b, 0, 1]
+    #         x_[0, :, 2] = x_test[b, 0, 2]
+    #         out, last_prediction = predict_sequence(encoder_model, decoder_model, x_, n_steps, output_dim, last_prediction)
+    #         predictions.append(out)
+    #
 
     if generate:
         predictions = np.array(predictions)
