@@ -37,8 +37,8 @@ def retrive_info(architecture, model_dir, units, drop, w):
             stop = int(sec_end[l] * start)
             results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
             all_results.append(results)
-        model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
-        measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+        #model = load_model_dense(T, units, drop, model_save_dir=data_dir)
+        #measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
 
         with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
             i = 0
@@ -55,7 +55,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
         name = 'LSTM'
         T=x_test.shape[1]
         audio_tar, audio_pred, fs = load_audio(data_dir)
-        #prediction_accuracy(audio_tar, audio_pred, fs, data_dir, name)
+        prediction_accuracy(audio_tar, audio_pred, fs, data_dir, name)
 
         sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
         sec = [32, 135, 238, 240.9, 308.7]
@@ -66,19 +66,16 @@ def retrive_info(architecture, model_dir, units, drop, w):
             stop = int(sec_end[l] * start)
             results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
             all_results.append(results)
-        model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
-        measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+        #model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
+        #measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
 
-        with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-            i=0
-            for res in all_results:
-                print('\n', 'Sound', '  : ', sig_name[i], file=f)
-                i=i+1
-                for key, value in res.items():
-                    print('\n', key, '  : ', value, file=f)
-        #with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-        #   for key, value in results.items():
-        #       print('\n', key, '  : ', value, file=f)
+        # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
+        #     i=0
+        #     for res in all_results:
+        #         print('\n', 'Sound', '  : ', sig_name[i], file=f)
+        #         i=i+1
+        #         for key, value in res.items():
+        #             print('\n', key, '  : ', value, file=f)
     # --------------------------------------------------------------------------------------
     # change of dataset
     # --------------------------------------------------------------------------------------
@@ -157,16 +154,16 @@ def retrive_info(architecture, model_dir, units, drop, w):
         enc_units = [units[0]]
         dec_units = [units[1]]
 
-        model = load_model_lstm_enc_dec_v2(T=T, encoder_units=enc_units, decoder_units=dec_units, drop=drop, model_save_dir=data_dir)
-        time_s = measure_time(model=model, x_test=x_test, y_test=x_test, enc_dec=True, v2=True, data_dir=data_dir, fs=fs, scaler=scaler, T=T)
+        #model = load_model_lstm_enc_dec_v2(T=T, encoder_units=enc_units, decoder_units=dec_units, drop=drop, model_save_dir=data_dir)
+        #time_s = measure_time(model=model, x_test=x_test, y_test=x_test, enc_dec=True, v2=True, data_dir=data_dir, fs=fs, scaler=scaler, T=T)
 
         sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
-        sec = [32, 135, 238, 240.9, 308.7]
-        sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
-        for l in range(len(sig_name)):
-            start = int(sec[l] * fs)
-            stop = int(sec_end[l] * start)
-            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=start, stop=stop, T=T, name=sig_name[l], generate=True)
+        #sec = [32, 135, 238, 240.9, 308.7]
+        #sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
+        # for l in range(len(sig_name)):
+        #     start = int(sec[l] * fs)
+        #     stop = int(sec_end[l] * start)
+        #     inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=start, stop=stop, T=T, name=sig_name[l], generate=True)
 
         all_results = []
         for l in range(len(sig_name)):
@@ -197,4 +194,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='lstm', model_dir='LSTM_64_64', units=[64, 64], drop=0., w=1)
+    retrive_info(architecture='dense', model_dir='DenseFeed_Testing', units=[64, 64], drop=0., w=1)
+    #retrive_info(architecture='lstm', model_dir='LSTM_', units=[8, 8], drop=0., w=16)
+    #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
