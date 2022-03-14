@@ -123,11 +123,17 @@ def prediction_accuracy(tar, pred, fs, data_dir, name):
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
     sec = [32, 135, 238, 240.9, 308.7]
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
-    for l in range(len(name)):
+    for l in range(len(sig_name)):
         start = int(sec[l] * fs)
         stop = int(sec_end[l] * start)
         plot_time(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
         plot_fft(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
+        pred_name = sig_name[l] + '_pred.wav'
+        tar_name = sig_name[l] + '_tar.wav'
+        pred_dir = os.path.normpath(os.path.join(data_dir, pred_name))
+        tar_dir = os.path.normpath(os.path.join(data_dir, tar_name))
+        wavfile.write(pred_dir, int(fs), pred[start:stop])
+        wavfile.write(tar_dir, int(fs), tar[start:stop])
 def create_ref(data_dir='/Users/riccardosimionato/PycharmProjects/All_Results'):
     inp, tar, fs = load_ref()
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']

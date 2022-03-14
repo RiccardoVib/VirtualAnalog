@@ -27,12 +27,26 @@ def retrive_info(architecture, model_dir, units, drop, w):
         T=x_test.shape[1]
         audio_tar, audio_pred, fs = load_audio(data_dir)
         prediction_accuracy(audio_tar, audio_pred, fs, data_dir, name)
-        results = measure_performance(audio_tar, audio_pred, name)
-        model = load_model_dense(T, units, drop, model_save_dir=data_dir)
-        time_s = measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+
+        sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
+        sec = [32, 135, 238, 240.9, 308.7]
+        sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
+        all_results = []
+        for l in range(len(sig_name)):
+            start = int(sec[l] * fs)
+            stop = int(sec_end[l] * start)
+            results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
+            all_results.append(results)
+        model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
+        measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+
         with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-           for key, value in results.items():
-               print('\n', key, '  : ', value, file=f)
+            i = 0
+            for res in all_results:
+                print('\n', 'Sound', '  : ', sig_name[i], file=f)
+                i = i + 1
+                for key, value in res.items():
+                    print('\n', key, '  : ', value, file=f)
     # LSTM-----------------------------------------------------------------------------------
     if architecture == 'lstm':
         dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_trials/'
@@ -41,13 +55,30 @@ def retrive_info(architecture, model_dir, units, drop, w):
         name = 'LSTM'
         T=x_test.shape[1]
         audio_tar, audio_pred, fs = load_audio(data_dir)
-        prediction_accuracy(audio_tar, audio_pred, fs, data_dir, name)
-        results = measure_performance(audio_tar, audio_pred, name)
+        #prediction_accuracy(audio_tar, audio_pred, fs, data_dir, name)
+
+        sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
+        sec = [32, 135, 238, 240.9, 308.7]
+        sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
+        all_results = []
+        for l in range(len(sig_name)):
+            start = int(sec[l] * fs)
+            stop = int(sec_end[l] * start)
+            results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
+            all_results.append(results)
         model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
-        time_s = measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+        measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
+
         with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-           for key, value in results.items():
-               print('\n', key, '  : ', value, file=f)
+            i=0
+            for res in all_results:
+                print('\n', 'Sound', '  : ', sig_name[i], file=f)
+                i=i+1
+                for key, value in res.items():
+                    print('\n', key, '  : ', value, file=f)
+        #with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
+        #   for key, value in results.items():
+        #       print('\n', key, '  : ', value, file=f)
     # --------------------------------------------------------------------------------------
     # change of dataset
     # --------------------------------------------------------------------------------------
@@ -166,4 +197,4 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_16', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='lstm', model_dir='LSTM_64_64', units=[64, 64], drop=0., w=1)
