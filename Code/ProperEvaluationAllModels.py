@@ -15,6 +15,14 @@ from tensorflow.keras.models import Model
 import tensorflow as tf
 from InferenceLSTM import predict_sequence
 from mag_smoothing import mag_smoothing
+
+def predict_sinusoids(f, fs, model):
+    fs = 48000
+    dt = 1 / fs
+    StopTime = 0.25
+    t = np.linspace(start=0, stop=StopTime-dt, num=dt)
+    sinusoid = np.sin(2 * np.pi * f * t)
+    return sinusoid
 #plotting
 def plot_time(audio_tar, audio_pred, fs, data_dir, name):
     N = len(audio_tar)

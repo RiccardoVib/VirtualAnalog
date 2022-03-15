@@ -69,13 +69,13 @@ def retrive_info(architecture, model_dir, units, drop, w):
         #model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
         #measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
 
-        # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-        #     i=0
-        #     for res in all_results:
-        #         print('\n', 'Sound', '  : ', sig_name[i], file=f)
-        #         i=i+1
-        #         for key, value in res.items():
-        #             print('\n', key, '  : ', value, file=f)
+        with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
+            i=0
+            for res in all_results:
+                print('\n', 'Sound', '  : ', sig_name[i], file=f)
+                i=i+1
+                for key, value in res.items():
+                    print('\n', key, '  : ', value, file=f)
     # --------------------------------------------------------------------------------------
     # change of dataset
     # --------------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='dense', model_dir='DenseFeed_Testing', units=[64, 64], drop=0., w=1)
-    #retrive_info(architecture='lstm', model_dir='LSTM_', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='dense', model_dir='DenseFeed_tanh', units=[4, 1], drop=0., w=2)
+    #retrive_info(architecture='lstm', model_dir='LSTM_32_32', units=[32, 32], drop=0., w=1)
     #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
     #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
