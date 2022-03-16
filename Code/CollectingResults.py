@@ -138,7 +138,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
                 _, audio_pred = wavfile.read(file)
 
             audio_tar = audio_format.pcm2float(audio_tar)
-            audio_tar = audio_tar[:-w]
+            audio_tar = audio_tar[w:]
             audio_pred = audio_format.pcm2float(audio_pred)
             results = measure_performance(audio_tar, audio_pred, name)
             all_results.append(results)
@@ -185,7 +185,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
                 _, audio_pred = wavfile.read(file)
 
             audio_tar = audio_format.pcm2float(audio_tar)
-            audio_tar = audio_tar[:-w]
+            audio_tar = audio_tar[w:]
             audio_pred = audio_format.pcm2float(audio_pred)
             results = measure_performance(audio_tar, audio_pred, name)
             all_results.append(results)
@@ -204,7 +204,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    #retrive_info(architecture='dense', model_dir='DenseFeed_tanh', units=[4, 1], drop=0., w=2)
+    #retrive_info(architecture='dense', model_dir='DenseFeed_128_128', units=[128, 128], drop=0., w=1)
     #retrive_info(architecture='lstm', model_dir='LSTM_32_32', units=[32, 32], drop=0., w=1)
-    retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_16', units=[8, 8], drop=0., w=16)
-    #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_16', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)

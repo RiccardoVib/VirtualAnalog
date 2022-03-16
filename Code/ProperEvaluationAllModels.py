@@ -30,7 +30,7 @@ def plot_time(audio_tar, audio_pred, fs, data_dir, name):
     tukey = signal.windows.tukey(N, alpha=0.1)
     #audio_tar_C = np.convolve(audio_tar, tukey, 'valid')
     #audio_pred_C = np.convolve(audio_pred, tukey, 'valid')
-    if name == 'Dense_drumKick_':
+    if name == 'LSTM_enc_dec_v2_drumKick_':
         fig, ax = plt.subplots()
         plt.title("Target vs Prediction - Time Domain")
         ax.plot(time[6000:19200], audio_tar[6000:19200], 'b--', label='Target')
