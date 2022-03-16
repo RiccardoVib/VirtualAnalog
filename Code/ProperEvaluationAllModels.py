@@ -344,31 +344,30 @@ def load_model_lstm_enc_dec_v2(T,encoder_units, decoder_units, drop, model_save_
 #inference
 def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, name, generate, model, time, measuring=False):
 
-    s1 = start//2
-    s2 = stop//2
-    hours=((s2-s1*time/60)/60)
-    days = hours/24
-    print('Number of samples to be generated: ', s2-s1)
-    print('Hours needed: ', hours)
-    print('Days needed: ', days)
+    s1 = start // x_test.shape[1]
+    s2 = stop // x_test.shape[1]
 
-    last_prediction = y_test[s1, 0]
-    predictions = [last_prediction]
+    #last_prediction = y_test[s1, 0]
+    #predictions = [last_prediction]
     output_dim = y_test.shape[1]-1
     n_steps = y_test.shape[1]-1
     encoder_model = model[0]
     decoder_model = model[1]
-
+    predictions = []
     if measuring:
+        last_prediction = 0
         predict_sequence(encoder_model, decoder_model, x_test[0, :, :], n_steps, output_dim, last_prediction, x_test.shape[1])
     else:
         for b in range(s1, s2):
             last_prediction = y_test[b, 0]
-            predictions = [last_prediction]
+            last_prediction_ = np.array(y_test[b, 0]).reshape(1,1)
+
+            #predictions.append(last_prediction)
             out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim,
                                                     last_prediction, x_test.shape[1])
-            predictions.append(out)
 
+            out_ = np.concatenate((last_prediction_, out))
+            predictions.append(out_)
     #     for b in range(s1, s2):
     #         out, last_prediction = predict_sequence(encoder_model, decoder_model, x_test[b, :, :], n_steps, output_dim, last_prediction)
     #         predictions.append(out)

@@ -113,8 +113,18 @@ def retrive_info(architecture, model_dir, units, drop, w):
         sec = [32, 135, 238, 240.9, 308.7]
         sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
         for l in range(len(sig_name)):
+
             start = int(sec[l] * fs)
             stop = int(sec_end[l] * start)
+
+            s1 = start // x_test.shape[1]
+            s2 = stop // x_test.shape[1]
+            hours = ((s2 - s1 * time_s / 60) / 60)
+            days = hours / 24
+            print('Number of samples to be generated: ', s2 - s1)
+            print('Hours needed: ', hours)
+            print('Days needed: ', days)
+
             inferenceLSTM_enc_dec(data_dir=data_dir, fs=fs, x_test=x_test, y_test=y_test, scaler=scaler, start=start, stop=stop, name=sig_name[l], generate=True,
                                   model=model, time=time_s, measuring=False)
 
@@ -194,7 +204,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='dense', model_dir='DenseFeed_tanh', units=[4, 1], drop=0., w=2)
+    #retrive_info(architecture='dense', model_dir='DenseFeed_tanh', units=[4, 1], drop=0., w=2)
     #retrive_info(architecture='lstm', model_dir='LSTM_32_32', units=[32, 32], drop=0., w=1)
-    #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_16', units=[8, 8], drop=0., w=16)
     #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
