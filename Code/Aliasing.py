@@ -20,7 +20,8 @@ for file in file_inp:
 
 N = len(sweep_pred)
 f, t, Zxx = signal.stft(sweep_pred, fs=fs)#, nfft=N//12, nperseg=N//12)
-plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+#plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
 plt.title('STFT Magnitude')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')

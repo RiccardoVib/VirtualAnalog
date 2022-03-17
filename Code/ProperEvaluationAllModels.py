@@ -15,6 +15,7 @@ from tensorflow.keras.models import Model
 import tensorflow as tf
 from InferenceLSTM import predict_sequence
 from mag_smoothing import mag_smoothing
+from librosa import display
 
 def predict_sinusoids(f, fs, model):
     fs = 48000
@@ -27,9 +28,10 @@ def predict_sinusoids(f, fs, model):
 
 def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
     amp = 2 * np.sqrt(2)
+    N = len(audio_tar)
     f, t, Zxx = signal.stft(audio_tar, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -39,7 +41,7 @@ def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
 
     f, t, Zxx = signal.stft(audio_pred, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -49,7 +51,7 @@ def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
 
     f, t, Zxx = signal.stft(audio_inp, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -57,67 +59,79 @@ def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
     fname = os.path.normpath(os.path.join(data_dir, name + 'inp_spectrogram.png'))
     fig.savefig(fname)
 
-def plot_time(audio_tar, audio_pred, fs, data_dir, name):
+def plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
     N = len(audio_tar)
     time = np.linspace(0, N / fs, num=N)
     tukey = signal.windows.tukey(N, alpha=0.1)
     #audio_tar_C = np.convolve(audio_tar, tukey, 'valid')
     #audio_pred_C = np.convolve(audio_pred, tukey, 'valid')
-    if name == 'LSTM_enc_dec_drumKick_':
+    if name == 'Dense_drumKick_' or name == 'LSTM_drumKick_' or name == 'LSTM_enc_dec_drumKick_' or name == 'LSTM_enc_dec_v2_drumKick_':
         fig, ax = plt.subplots()
         plt.title("Target vs Prediction - Time Domain")
         ax.plot(time[6000:19200], audio_tar[6000:19200], 'b--', label='Target')
         ax.plot(time[6000:19200], audio_pred[6000:19200], 'r:', label='Prediction')
+        ax.set(ylim=[-0.20, 0.20])
         ax.set_xlabel('Time')
         ax.set_ylabel('Amplitude')
         ax.legend()
+        #display.waveshow(audio_tar[6000:19200], sr=fs, ax=ax)
+        #display.waveshow(audio_pred[6000:19200], sr=fs, ax=ax)
         #plt.show()
     else:
         fig, ax = plt.subplots()
         plt.title("Target vs Prediction - Time Domain")
-        ax.plot(time, audio_tar, 'b--', label='Target')
-        ax.plot(time, audio_pred, 'r:', label='Prediction')
+        #ax.plot(time, audio_tar, 'b--', label='Target')
+        #ax.plot(time, audio_pred, 'r:', label='Prediction')
         #ax.plot(time, tukey, 'r:', label='Prediction')
         ax.set_xlabel('Time')
         ax.set_ylabel('Amplitude')
+        #ax.set(ylim=[-0.08, 0.08])#, xlim=[0,len(audio_tar)])
+        ax.set(ylim=[-0.3, 0.3])#, xlim=[0,len(audio_tar)])
+        display.waveshow(audio_inp, sr=fs, ax=ax, label='Input')
+        display.waveshow(audio_tar, sr=fs, ax=ax, label='Target', alpha=0.7)
+        display.waveshow(audio_pred, sr=fs, ax=ax, label='Prediction', alpha=0.5)
+        ax.label_outer()
         ax.legend()
         #plt.show()
 
     fname = os.path.normpath(os.path.join(data_dir, name + '_time.png'))
     fig.savefig(fname)
-def plot_fft(audio_tar, audio_pred, fs, data_dir, name):
+def plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
     N = len(audio_tar)
     tukey = signal.windows.tukey(N, alpha=0.5)
-
+    fft_inp = fft.fftshift(fft.fft(audio_inp * tukey))[N // 2:]
     fft_tar = fft.fftshift(fft.fft(audio_tar*tukey))[N // 2:]
     fft_pred = fft.fftshift(fft.fft(audio_pred*tukey))[N // 2:]
+    fft_inp_smoth = mag_smoothing(fft_inp, 6)
     fft_tar_smoth = mag_smoothing(fft_tar, 6)
     fft_pred_smoth = mag_smoothing(fft_pred, 6)
     freqs = fft.fftshift(fft.fftfreq(N) * fs)
     freqs = freqs[N // 2:]
-    fig, ax = plt.subplots(2,1)
-    plt.suptitle("Target vs Prediction - Frequency Domain")
-    ax[0].semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'b--', label='Target')#, linewidth=0.5, markersize=12)
-    ax[1].semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'r--', label='Prediction')#, linewidth=0.1, markersize=12)
-    ax[0].set_xlabel('Frequency')
-    ax[1].set_xlabel('Frequency')
-    ax[0].set_ylabel('Magnitude (dB)')
-    ax[1].set_ylabel('Magnitude (dB)')
-    ax[0].axis(xmin=20,xmax=22050)
-    ax[1].axis(xmin=20,xmax=22050)
-    ax[0].axis(ymin=-100,ymax=0)
-    ax[1].axis(ymin=-100,ymax=0)
-    ax[0].legend()
-    ax[1].legend()
+    # fig, ax = plt.subplots(2,1)
+    # plt.suptitle("Target vs Prediction - Frequency Domain")
+    # ax[0].semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'b--', label='Target')#, linewidth=0.5, markersize=12)
+    # ax[1].semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'r--', label='Prediction')#, linewidth=0.1, markersize=12)
+    # ax[0].set_xlabel('Frequency')
+    # ax[1].set_xlabel('Frequency')
+    # ax[0].set_ylabel('Magnitude (dB)')
+    # ax[1].set_ylabel('Magnitude (dB)')
+    # ax[0].axis(xmin=20,xmax=22050)
+    # ax[1].axis(xmin=20,xmax=22050)
+    # ax[0].axis(ymin=-100,ymax=0)
+    # ax[1].axis(ymin=-100,ymax=0)
+    # ax[0].legend()
+    # ax[1].legend()
     #plt.show()
 
-    fname = os.path.normpath(os.path.join(data_dir, name + '_fft.png'))
-    fig.savefig(fname)
+    #fname = os.path.normpath(os.path.join(data_dir, name + '_fft.png'))
+    #fig.savefig(fname)
 
     fig, ax = plt.subplots()
     plt.title("Target vs Prediction - Frequency Domain")
-    ax.semilogx(freqs, 20*np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'b--', label='Target')
-    ax.semilogx(freqs,20 * np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'r--', label='Prediction')
+    ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_inp_smoth), np.max(np.abs(fft_inp)))), 'b--', label='Input')
+    ax.semilogx(freqs, 20*np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'y--', label='Target')
+    if name != 'Dense_drumKick_' or name != 'LSTM_drumKick_' or name != 'LSTM_enc_dec_drumKick_' or name != 'LSTM_enc_dec_v2_drumKick_':
+        ax.semilogx(freqs, 20*np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'g--', label='Prediction')
     ax.set_xlabel('Frequency')
     ax.set_ylabel('Magnitude (dB)')
     ax.axis(xmin=20,xmax=22050)
@@ -171,16 +185,20 @@ def load_audio(data_dir):
     data_dir = os.path.normpath(os.path.join(data_dir, 'WavPredictions'))
     file_tar = glob.glob(os.path.normpath('/'.join([data_dir, '*_tar.wav'])))
     file_pred = glob.glob(os.path.normpath('/'.join([data_dir, '*_pred.wav'])))
+    file_inp = glob.glob(os.path.normpath('/'.join([data_dir, '*_inp.wav'])))
 
+    for file in file_inp:
+        fs, audio_inp = wavfile.read(file)
     for file in file_tar:
         fs, audio_tar = wavfile.read(file)
 
     for file in file_pred:
         _, audio_pred = wavfile.read(file)
 
+    audio_inp = audio_format.pcm2float(audio_inp)
     audio_tar = audio_format.pcm2float(audio_tar)
     audio_pred = audio_format.pcm2float(audio_pred)
-    return audio_tar, audio_pred, fs
+    return audio_inp, audio_tar, audio_pred, fs
 def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
 
     L = 31000000
@@ -195,17 +213,17 @@ def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
         fs = fs // 2
     return inp, tar, fs
 #test samples
-def prediction_accuracy(tar, pred, fs, data_dir, name):
+def prediction_accuracy(tar, pred, inp, fs, data_dir, name):
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
     sec = [32, 135, 238, 240.9, 308.7]
     sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
     for l in range(len(sig_name)):
         start = int(sec[l] * fs)
         stop = int(sec_end[l] * start)
-        plot_time(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
-        plot_fft(tar[start:stop], pred[start:stop], fs, data_dir, name + sig_name[l])
-        pred_name = sig_name[l] + '_pred.wav'
-        tar_name = sig_name[l] + '_tar.wav'
+        plot_time(tar[start:stop], pred[start:stop], inp[start:stop], fs, data_dir, name + sig_name[l])
+        plot_fft(tar[start:stop], pred[start:stop], inp[start:stop], fs, data_dir, name + sig_name[l])
+        #pred_name = sig_name[l] + '_pred.wav'
+        #tar_name = sig_name[l] + '_tar.wav'
         #pred_dir = os.path.normpath(os.path.join(data_dir, pred_name))
         #tar_dir = os.path.normpath(os.path.join(data_dir, tar_name))
         #wavfile.write(pred_dir, int(fs), pred[start:stop])
