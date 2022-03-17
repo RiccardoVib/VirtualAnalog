@@ -71,11 +71,52 @@ def data_preparation(**kwargs):
         threshold_collector_never_seen.append(np.abs(threshold))
 
         if test_rec == False:
+
+            # find
+            sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
+            sec = [32, 135, 238, 240.9, 308.7]
+            sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
+            start = np.zeros(len(sig_name), dtype=int)
+            stop = np.zeros(len(sig_name), dtype=int)
+            for l in range(len(sig_name)):
+                start[l] = int(sec[l] * fs // factor)
+                stop[l] = int(sec_end[l] * start[l])
+
+            sweep_inp = inp[start[0]:stop[0]]
+            guitar_inp = inp[start[1]:stop[1]]
+            drumKick_inp = inp[start[2]:stop[2]]
+            drumHH_inp = inp[start[3]:stop[3]]
+            bass_inp = inp[start[4]:stop[4]]
+            sweep_tar = tar[start[0]:stop[0]]
+            guitar_tar = tar[start[1]:stop[1]]
+            drumKick_tar = tar[start[2]:stop[2]]
+            drumHH_tar = tar[start[3]:stop[3]]
+            bass_tar = tar[start[4]:stop[4]]
+
+            # remove
+            inp1 = inp[:start[0]]
+            inp2 = inp[stop[0] + 1:start[1]]
+            inp3 = inp[stop[1] + 1:start[2]]
+            inp4 = inp[stop[2] + 1:start[3]]
+            inp5 = inp[stop[3] + 1:start[4]]
+            inp6 = inp[stop[4] + 1:]
+
+            inp = np.concatenate((inp1, inp2, inp3, inp4, inp5, inp6))
+            tar1 = tar[:start[0]]
+            tar2 = tar1[stop[0] + 1:start[1]]
+            tar3 = tar1[stop[1] + 1:start[2]]
+            tar4 = tar1[stop[2] + 1:start[3]]
+            tar5 = tar1[stop[3] + 1:start[4]]
+            tar6 = tar1[stop[4] + 1:]
+            tar = np.concatenate((tar1, tar2, tar3, tar4, tar5, tar6))
+
+
             inp_collector.append(inp)
             tar_collector.append(tar)
             ratio_collector.append(ratio)
             threshold_collector.append(np.abs(threshold))
         else:
+
             inp_test.append(inp)
             tar_test.append(tar)
             ratio_test.append(ratio)

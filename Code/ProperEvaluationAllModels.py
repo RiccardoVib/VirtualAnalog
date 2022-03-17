@@ -24,13 +24,46 @@ def predict_sinusoids(f, fs, model):
     sinusoid = np.sin(2 * np.pi * f * t)
     return sinusoid
 #plotting
+
+def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
+    amp = 2 * np.sqrt(2)
+    f, t, Zxx = signal.stft(audio_tar, fs=fs)
+    fig, ax = plt.subplots()
+    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.title('STFT Magnitude')
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+    #plt.show()
+    fname = os.path.normpath(os.path.join(data_dir, name + 'tar_spectrogram.png'))
+    fig.savefig(fname)
+
+    f, t, Zxx = signal.stft(audio_pred, fs=fs)
+    fig, ax = plt.subplots()
+    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.title('STFT Magnitude')
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+
+    fname = os.path.normpath(os.path.join(data_dir, name + 'pred_spectrogram.png'))
+    fig.savefig(fname)
+
+    f, t, Zxx = signal.stft(audio_inp, fs=fs)
+    fig, ax = plt.subplots()
+    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=amp, shading='gouraud')
+    plt.title('STFT Magnitude')
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+
+    fname = os.path.normpath(os.path.join(data_dir, name + 'inp_spectrogram.png'))
+    fig.savefig(fname)
+
 def plot_time(audio_tar, audio_pred, fs, data_dir, name):
     N = len(audio_tar)
     time = np.linspace(0, N / fs, num=N)
     tukey = signal.windows.tukey(N, alpha=0.1)
     #audio_tar_C = np.convolve(audio_tar, tukey, 'valid')
     #audio_pred_C = np.convolve(audio_pred, tukey, 'valid')
-    if name == 'LSTM_enc_dec_v2_drumKick_':
+    if name == 'LSTM_enc_dec_drumKick_':
         fig, ax = plt.subplots()
         plt.title("Target vs Prediction - Time Domain")
         ax.plot(time[6000:19200], audio_tar[6000:19200], 'b--', label='Target')
