@@ -27,21 +27,24 @@ def predict_sinusoids(f, fs, model):
 #plotting
 
 def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
-    amp = 2 * np.sqrt(2)
-    N = len(audio_tar)
+    vmin = -40
     f, t, Zxx = signal.stft(audio_tar, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
+    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    #plt.imshow(mat, origin="lower", cmap='gray', interpolation='nearest')
+    plt.colorbar()
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
+    #plt.legend()
     #plt.show()
     fname = os.path.normpath(os.path.join(data_dir, name + 'tar_spectrogram.png'))
     fig.savefig(fname)
 
     f, t, Zxx = signal.stft(audio_pred, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
+    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    plt.colorbar()
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -51,7 +54,8 @@ def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
 
     f, t, Zxx = signal.stft(audio_inp, fs=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
+    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    plt.colorbar()
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -85,7 +89,6 @@ def plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
         #ax.plot(time, tukey, 'r:', label='Prediction')
         ax.set_xlabel('Time')
         ax.set_ylabel('Amplitude')
-        #ax.set(ylim=[-0.08, 0.08])#, xlim=[0,len(audio_tar)])
         ax.set(ylim=[-0.3, 0.3])#, xlim=[0,len(audio_tar)])
         display.waveshow(audio_inp, sr=fs, ax=ax, label='Input')
         display.waveshow(audio_tar, sr=fs, ax=ax, label='Target', alpha=0.7)

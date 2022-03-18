@@ -43,8 +43,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
             stop = int(sec_end[l] * start)
             #results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
             #all_results.append(results)
-            spectrogram(audio_tar[start:stop], audio_pred[start:stop], audio_inp[start:stop], fs, data_dir,
-                        sig_name[l] + name)
+            #spectrogram(audio_tar[start:stop], audio_pred[start:stop], audio_inp[start:stop], fs, data_dir, sig_name[l] + name)
 
         # file_inp = glob.glob(os.path.normpath('/'.join([data_dir_ref, '_drumKick__inp.wav'])))
         # audio_inp = 0
@@ -112,8 +111,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
             stop = int(sec_end[l] * start)
             #results = measure_performance(audio_tar[start:stop], audio_pred[start:stop], name)
             #all_results.append(results)
-            spectrogram(audio_tar[start:stop], audio_pred[start:stop], audio_inp[start:stop], fs, data_dir,
-                        sig_name[l] + name)
+            #spectrogram(audio_tar[start:stop], audio_pred[start:stop], audio_inp[start:stop], fs, data_dir, sig_name[l] + name)
 
         #model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
         #measure_time(model, x_test, y_test, False, False, data_dir, fs, scaler, T)
@@ -181,21 +179,26 @@ def retrive_info(architecture, model_dir, units, drop, w):
         #
         all_results = []
         for l in range(len(sig_name)):
+            file_inp = glob.glob(os.path.normpath('/'.join([data_dir_ref, sig_name[l] + '_inp.wav'])))
             file_tar = glob.glob(os.path.normpath('/'.join([data_dir_ref, sig_name[l] + '_tar.wav'])))
             file_pred = glob.glob(os.path.normpath('/'.join([data_dir, sig_name[l] + '_pred.wav'])))
             for file in file_tar:
                 fs, audio_tar = wavfile.read(file)
             for file in file_pred:
                 _, audio_pred = wavfile.read(file)
+            for file in file_inp:
+                fs, audio_inp = wavfile.read(file)
 
+            audio_inp = audio_format.pcm2float(audio_inp)
             audio_tar = audio_format.pcm2float(audio_tar)
-            audio_tar = audio_tar[:-w]
+            audio_inp = audio_inp[w:]
+            audio_tar = audio_tar[w:]
             audio_pred = audio_format.pcm2float(audio_pred)
             audio_pred = audio_pred[:len(audio_tar)]
             results = measure_performance(audio_tar, audio_pred, name)
             all_results.append(results)
-            plot_time(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
-            plot_fft(audio_tar, audio_pred, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
+            plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
+            plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
 
         with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
             i=0
@@ -241,13 +244,13 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
             audio_inp = audio_format.pcm2float(audio_inp)
             audio_tar = audio_format.pcm2float(audio_tar)
-            audio_inp = audio_inp[w:]
-            audio_tar = audio_tar[w:]
+            #audio_inp = audio_inp[w:]
+            #audio_tar = audio_tar[w:]
             audio_pred = audio_format.pcm2float(audio_pred)
             #results = measure_performance(audio_tar, audio_pred, name)
             #all_results.append(results)
-            plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
-            plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
+            #plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
+            #plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
             spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir,
                         sig_name[l] + name)
         # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
@@ -262,7 +265,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 if __name__ == '__main__':
 
-    retrive_info(architecture='dense', model_dir='DenseFeed_32_32', units=[32, 32], drop=0., w=1)
-    retrive_info(architecture='lstm', model_dir='LSTM_32_32', units=[32, 32], drop=0., w=1)
+    #retrive_info(architecture='dense', model_dir='DenseFeed_32_32_midanh', units=[32, 32], drop=0., w=1)
+    retrive_info(architecture='lstm', model_dir='LSTM_64_64_tanh', units=[64, 64], drop=0., w=1)
     #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_2', units=[8, 8], drop=0., w=2)
-    #etrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
