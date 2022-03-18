@@ -131,10 +131,20 @@ def plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
 
     fig, ax = plt.subplots()
     plt.title("Target vs Prediction - Frequency Domain")
-    ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_inp_smoth), np.max(np.abs(fft_inp)))), 'b--', label='Input')
-    ax.semilogx(freqs, 20*np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'y--', label='Target')
-    if name != 'Dense_drumKick_' or name != 'LSTM_drumKick_' or name != 'LSTM_enc_dec_drumKick_' or name != 'LSTM_enc_dec_v2_drumKick_':
-        ax.semilogx(freqs, 20*np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'g--', label='Prediction')
+
+
+    if name == 'Dense_drumKick_' or name == 'LSTM_drumKick_' or name == 'LSTM_enc_dec_drumKick_' or name == 'LSTM_enc_dec_v2_drumKick_':
+        ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'b--',
+                    label='Target')
+        ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'r--',
+                    label='Prediction')
+    else:
+        ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_inp_smoth), np.max(np.abs(fft_inp)))), 'b--',
+                    label='Input')
+        ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_tar_smoth), np.max(np.abs(fft_tar)))), 'y--',
+                    label='Target')
+        ax.semilogx(freqs, 20 * np.log10(np.divide(np.abs(fft_pred_smoth), np.max(np.abs(fft_pred)))), 'g--',
+                    label='Prediction')
     ax.set_xlabel('Frequency')
     ax.set_ylabel('Magnitude (dB)')
     ax.axis(xmin=20,xmax=22050)
