@@ -57,8 +57,13 @@ def get_data(data_dir, start, stop, T, seed=422):
     # TEST
     all_inp, all_tar = [], []
 
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test_2.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test_2.pickle'])), 'rb')
+    #meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test_2.pickle'])), 'rb')
+    #file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test_2.pickle'])), 'rb')
+    #meta = open(os.path.normpath('/'.join([data_dir, 'metadatas466_-10.pickle'])), 'rb')
+    #file_data = open(os.path.normpath('/'.join([data_dir, 'data466_-10.pickle'])), 'rb')
+    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas733_-40.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data733_-40.pickle'])), 'rb')
+
     Z = pickle.load(file_data)
     inp = Z['inp']
     tar = Z['tar']
@@ -101,13 +106,13 @@ def get_data(data_dir, start, stop, T, seed=422):
     x_ = np.array(x_)
     y_ = np.array(y_)
 
-    return x_, y_
+    return x_, y_, scaler
 
 if __name__ == '__main__':
 
     data_dir = '../Files'
 
-    x_, y_ = get_data(data_dir=data_dir, seed=422)
+    x_, y_ , scaler = get_data(data_dir=data_dir, seed=422)
 
     data = {'x': x_, 'y': y_}
 

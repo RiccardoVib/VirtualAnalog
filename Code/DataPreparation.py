@@ -93,6 +93,8 @@ def data_preparation(**kwargs):
             drumHH_tar = tar[start[3]:stop[3]]
             bass_tar = tar[start[4]:stop[4]]
 
+
+
             # remove
             inp1 = inp[:start[0]]
             inp2 = inp[stop[0] + 1:start[1]]
