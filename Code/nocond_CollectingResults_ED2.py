@@ -49,26 +49,23 @@ def retrive_info(architecture, model_dir, units, drop, w):
             audio_inp = audio_format.pcm2float(audio_inp)
             audio_tar = audio_format.pcm2float(audio_tar)
             audio_pred = audio_format.pcm2float(audio_pred)
-            plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
-            plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
-            results = measure_performance(audio_tar, audio_pred, name)
-            all_results.append(results)
+            #plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
+            #plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec_v2' + sig_name[l])
+            #results = measure_performance(audio_tar, audio_pred, name)
+            #all_results.append(results)
 
-            #spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
+            spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
             #print(sig_name[l], ' : ', metrics.mean_squared_error(audio_tar, audio_pred))
-        with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
-            i=0
-            for res in all_results:
-                print('\n', 'Sound', '  : ', sig_name[i], file=f)
-                i=i+1
-                for key, value in res.items():
-                    print('\n', key, '  : ', value, file=f)
+        # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
+        #     i=0
+        #     for res in all_results:
+        #         print('\n', 'Sound', '  : ', sig_name[i], file=f)
+        #         i=i+1
+        #         for key, value in res.items():
+        #             print('\n', key, '  : ', value, file=f)
 
 
 
 if __name__ == '__main__':
 
-    #retrive_info(architecture='dense', model_dir='DenseFeed_32_32', units=[32, 32], drop=0., w=1)
-    #retrive_info(architecture='lstm', model_dir='LSTM_32_32', units=[32, 32], drop=0., w=1)
-    #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_2', units=[8, 8], drop=0., w=2)
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16', units=[8, 8], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16_64_64', units=[64, 64], drop=0., w=16)

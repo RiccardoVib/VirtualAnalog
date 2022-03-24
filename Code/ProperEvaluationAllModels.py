@@ -215,9 +215,9 @@ def load_audio(data_dir):
 def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
 
     L = 31000000
-    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
+    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
     #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_466_-10.wav'])))
-    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_733_-40.wav'])))
+    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_733_-40.wav'])))
     for file in file_dirs:
         fs, audio_stereo = wavfile.read(file)  # fs= 96,000 Hz
         inp = audio_stereo[:L, 0].astype(np.float32)

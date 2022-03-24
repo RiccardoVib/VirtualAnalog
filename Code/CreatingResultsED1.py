@@ -55,12 +55,12 @@ for l in range(len(sig_name)):
     audio_tar = audio_format.pcm2float(audio_tar)
     audio_pred = audio_format.pcm2float(audio_pred)
     audio_pred = audio_pred[:len(audio_tar)]
-    print(sig_name[l], ' : ', metrics.mean_squared_error(audio_tar, audio_pred))
+    #print(sig_name[l], ' : ', metrics.mean_squared_error(audio_tar, audio_pred))
     #results = measure_performance(audio_tar, audio_pred, name)
     #all_results.append(results)
     #plot_time(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
     #plot_fft(audio_tar, audio_pred, audio_inp, fs, data_dir, 'LSTM_enc_dec' + sig_name[l])
-    #spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
+    spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
 
 # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
 #     i = 0
