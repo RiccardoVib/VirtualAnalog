@@ -63,7 +63,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #T past values used to predict the next value
     T = x.shape[1] #time window
-    D = x.shape[2]
+    D = x.shape[2] #conditioning
 
     encoder_inputs = Input(shape=(T,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
@@ -96,7 +96,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     model.summary()
-    model.output_shape
+
 
     if opt_type == 'Adam':
         opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -137,10 +137,9 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
 
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=20, restore_best_weights=True,                                                             verbose=0)
     callbacks += [early_stopping_callback]
-    #train the RNN
+    #train
     results = model.fit([x, y[:, :-1]], y[:, 1:], batch_size=b_size, epochs=epochs,
                         validation_data=([x_val, y_val[:, :-1]], y_val[:, 1:]),
-                        #callbacks=tensorboard_callback)
                         callbacks=callbacks)
 
     # #prediction test

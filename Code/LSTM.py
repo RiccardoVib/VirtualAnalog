@@ -64,13 +64,13 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         outputs = LSTM(first_unit_encoder, return_sequences=True, name='LSTM_En0')(inputs)
         for i, unit in enumerate(units):
             outputs = LSTM(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
-        outputs, state_h, state_c = LSTM(last_unit_encoder, return_state=True, name='LSTM_EnFin')(outputs)
+        outputs = LSTM(last_unit_encoder, name='LSTM_EnFin')(outputs)
     else:
-        outputs, state_h, state_c = LSTM(first_unit_encoder, return_state=True, name='LSTM_En')(inputs)
+        outputs = LSTM(first_unit_encoder, name='LSTM_En')(inputs)
 
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    outputs = Dense(1, activation='tanh', name='DenseLay')(outputs)
+    outputs = Dense(1, name='DenseLay')(outputs)
     model = Model(inputs, outputs)
     model.summary()
 
@@ -127,14 +127,7 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
     if not inference:
         results = model.fit(x, y[:, 0], batch_size=b_size, epochs=epochs,  verbose=0,
                         validation_data=(x_val, y_val[:, 0]),
-                        #callbacks=tensorboard_callback)
                         callbacks=callbacks)
-        # plotting the loss curve over training iteration
-        plt.plot(model.loss_curve_)
-        plt.xlabel('iteration')
-        plt.xlabel('loss')
-        plt.show()
-
 
     predictions_test = model.predict(x_test, batch_size=b_size)
 

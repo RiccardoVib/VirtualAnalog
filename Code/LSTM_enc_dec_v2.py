@@ -141,10 +141,10 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
             print("Initializing random weights.")
             
     
-    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=20, restore_best_weights=True, verbose=0)
+    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.000001, patience=20, restore_best_weights=True, verbose=0)
     callbacks += [early_stopping_callback]
 
-    #train the RNN
+    #train
     if not inference:
         results = model.fit([x[:,:-1,:], x[:,-1, 0]], y[:, -1], batch_size=b_size, epochs=epochs, verbose=0,
                             validation_data=([x_val[:,:-1,:], x_val[:,-1, 0]], y_val[:, -1]),

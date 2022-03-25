@@ -45,7 +45,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 
     #T past values used to predict the next value
     T = x.shape[1] #time window
-    D = x.shape[2]
+    D = x.shape[2] #conditioning
 
     inputs = Input(shape=(T,D), name='input')
     first_unit = units.pop(0)
@@ -54,12 +54,12 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
         outputs = Dense(first_unit, name='Dense_0')(inputs)
         for i, unit in enumerate(units):
             outputs = Dense(unit, name='Dense_' + str(i + 1))(outputs)
-        outputs = Dense(last_unit, name='Dense_Fin')(outputs)
+        outputs = Dense(last_unit, activation='tanh', name='Dense_Fin')(outputs)
     else:
-        outputs = Dense(first_unit, name='Dense')(inputs)
+        outputs = Dense(first_unit, activation='tanh', name='Dense')(inputs)
     if drop != 0.:
         outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
-    final_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
+    final_outputs = Dense(1, name='DenseLay')(outputs)
     model = Model(inputs, final_outputs)
     model.summary()
 
@@ -77,31 +77,41 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
     else:
         raise ValueError('Please pass loss_type as either MAE or MSE')
 
-    # TODO: Currently not loading weights as we only save the best model... Should probably
     callbacks = []
     if ckpt_flag:
-        ckpt_path = os.path.normpath(os.path.join(model_save_dir, save_folder, 'Checkpoints', 'cp-{epoch:04d}.ckpt'))
-        ckpt_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'Checkpoints'))
+        ckpt_path = os.path.normpath(os.path.join(model_save_dir, save_folder, 'Checkpoints', 'best', 'best.ckpt'))
+        ckpt_path_latest = os.path.normpath(
+            os.path.join(model_save_dir, save_folder, 'Checkpoints', 'latest', 'latest.ckpt'))
+        ckpt_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'Checkpoints', 'best'))
+        ckpt_dir_latest = os.path.normpath(os.path.join(model_save_dir, save_folder, 'Checkpoints', 'latest'))
+
         if not os.path.exists(os.path.dirname(ckpt_dir)):
             os.makedirs(os.path.dirname(ckpt_dir))
+        if not os.path.exists(os.path.dirname(ckpt_dir_latest)):
+            os.makedirs(os.path.dirname(ckpt_dir_latest))
 
         ckpt_callback = tf.keras.callbacks.ModelCheckpoint(filepath=ckpt_path, monitor='val_loss', mode='min',
-                                                           save_best_only=True, save_weights_only=True, verbose=1, )
-        callbacks += [ckpt_callback]
-        latest = tf.train.latest_checkpoint(ckpt_dir)
+                                                           save_best_only=True, save_weights_only=True, verbose=1)
+        ckpt_callback_latest = tf.keras.callbacks.ModelCheckpoint(filepath=ckpt_path_latest, monitor='val_loss',
+                                                                  mode='min',
+                                                                  save_best_only=False, save_weights_only=True,
+                                                                  verbose=1)
+        callbacks += [ckpt_callback, ckpt_callback_latest]
+        latest = tf.train.latest_checkpoint(ckpt_dir_latest)
         if latest is not None:
             print("Restored weights from {}".format(ckpt_dir))
             model.load_weights(latest)
-            start_epoch = int(latest.split('-')[-1].split('.')[0])
-            print('Starting from epoch: ', start_epoch + 1)
+            # start_epoch = int(latest.split('-')[-1].split('.')[0])
+            # print('Starting from epoch: ', start_epoch + 1)
         else:
             print("Initializing random weights.")
 
+
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=20, restore_best_weights=True,                                                             verbose=0)
     callbacks += [early_stopping_callback]
-    #train the RNN
 
-    results = model.fit([x], y, batch_size=16, epochs=epochs,
+    #train
+    results = model.fit(x, y, batch_size=b_size, epochs=epochs,
                         validation_data=(x_val, y_val), callbacks=callbacks, verbose=0)
 
     # #prediction test
