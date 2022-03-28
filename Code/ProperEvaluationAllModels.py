@@ -16,6 +16,7 @@ import tensorflow as tf
 from InferenceLSTM import predict_sequence
 from mag_smoothing import mag_smoothing
 from librosa import display
+import pickle
 
 def predict_sinusoids(f, fs, model):
     fs = 48000
@@ -476,7 +477,15 @@ def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, nam
         wavfile.write(inp_dir, int(fs), x_gen)
         wavfile.write(tar_dir, int(fs), y_gen)
 def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, generate):
-    x_, y_ , scaler = get_data(data_dir='../Files', start=start, stop=stop, T=T)
+    #x_, y_ , scaler = get_data(data_dir='../Files', start=start, stop=stop, T=T)
+
+    data_ = '../Files'
+    file_data = open(os.path.normpath('/'.join([data_, 'data_never_seen_w16.pickle'])), 'rb')
+    data = pickle.load(file_data)
+    x_ = data['x']
+    fs = data['fs']
+    scaler = data['scaler']
+
     predictions = model.predict([x_[:, :-1, :], x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
 
     if generate:

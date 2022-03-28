@@ -4,7 +4,7 @@ from scipy import signal
 import os
 import glob
 import pickle
-
+import audio_format
 def get_keys_from_value(d, val):
     return [k for k, v in d.items() if v == val]
 #
@@ -52,11 +52,15 @@ def data_preparation(**kwargs):
             raise ValueError('Problems!')
 
         fs, audio_stereo = wavfile.read(file)
-        inp = audio_stereo[:L, 0].astype(np.float32)
-        tar = audio_stereo[1:L+1, 1].astype(np.float32)
 
-        inp_never_seen = audio_stereo[L:, 0].astype(np.float32)
-        tar_never_seen = audio_stereo[L+1:, 1].astype(np.float32)
+        inp = audio_format.pcm2float(audio_stereo[:L, 0])
+        tar = audio_format.pcm2float(audio_stereo[1:L+1, 1])
+
+        #inp = audio_stereo[:L, 0].astype(np.float32)
+        #tar = audio_stereo[1:L+1, 1].astype(np.float32)
+
+        inp_never_seen = audio_format.pcm2float(audio_stereo[L:, 0])
+        tar_never_seen = audio_format.pcm2float(audio_stereo[L+1:, 1])
 
         inp = signal.resample_poly(inp, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
@@ -64,9 +68,9 @@ def data_preparation(**kwargs):
         inp_never_seen = signal.resample_poly(inp_never_seen, 1, factor)
         tar_never_seen = signal.resample_poly(tar_never_seen, 1, factor)
 
-        tone = float(tone)
-        drive = float(drive)
-        mode = float(mode)
+        tone = float(tone)/2
+        drive = float(drive)/2
+        mode = float(mode)/2
         #tar = np.pad(tar, (1, 0), mode='constant', constant_values=0)
 
         inp_collector_never_seen.append(inp_never_seen)

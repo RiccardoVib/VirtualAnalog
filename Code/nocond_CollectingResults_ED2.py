@@ -17,17 +17,25 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
     data_ = '../Files'
     fs = 48000
+    dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_enc_dec_v2_trials/'
+    data_dir = os.path.normpath(os.path.join(dir, model_dir))
+
+    name = 'LSTM_enc_dec_v2'
+    T = 16
+    enc_units = [units[0]]
+    dec_units = [units[1]]
+    data_dir_never = '../Files'
+    file_never = open(os.path.normpath('/'.join([data_dir_never, 'data48_never_seen.pickle'])), 'rb')
+    file_meta_never = open(os.path.normpath('/'.join([data_dir_never, 'metadatas48_never_seen.pickle'])), 'rb')
+    data_never = pickle.load(file_never)
+    meta_never = pickle.load(file_meta_never)
+
+
+
 
     # LSTM_enc_dec_v2-------------------------------------------------------------------------
     if architecture == 'lstm_enc_dec_v2':
-        dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_enc_dec_v2_trials/'
-        data_dir = os.path.normpath(os.path.join(dir, model_dir))
-        data_dir_ref='/Users/riccardosimionato/PycharmProjects/All_Results'
-        name = 'LSTM_enc_dec_v2'
-        T = 16
-        enc_units = [units[0]]
-        dec_units = [units[1]]
-
+        data_dir_ref = '/Users/riccardosimionato/PycharmProjects/All_Results'
         sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
         sec = [32, 135, 238, 240.9, 308.7]
         sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
@@ -54,7 +62,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
             #results = measure_performance(audio_tar, audio_pred, name)
             #all_results.append(results)
 
-            spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
+            #spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, sig_name[l] + name)
             #print(sig_name[l], ' : ', metrics.mean_squared_error(audio_tar, audio_pred))
         # with open(os.path.normpath('/'.join([data_dir, 'performance_results.txt'])), 'w') as f:
         #     i=0
@@ -67,5 +75,5 @@ def retrive_info(architecture, model_dir, units, drop, w):
 
 
 if __name__ == '__main__':
-
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_16_64_64', units=[64, 64], drop=0., w=16)
+#lstm_enc_dec_v2
+    retrive_info(architecture=' ', model_dir='LSTM_enc_dec_v2_16_64_64', units=[64, 64], drop=0., w=16)

@@ -57,8 +57,8 @@ def get_data(data_dir, start, stop, T, seed=422):
     # TEST
     all_inp, all_tar = [], []
 
-    meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test_2.pickle'])), 'rb')
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test_2.pickle'])), 'rb')
+    #meta = open(os.path.normpath('/'.join([data_dir, 'metadatas48_test_2.pickle'])), 'rb')
+    #file_data = open(os.path.normpath('/'.join([data_dir, 'data48_test_2.pickle'])), 'rb')
     #meta = open(os.path.normpath('/'.join([data_dir, 'metadatas466_-10.pickle'])), 'rb')
     #file_data = open(os.path.normpath('/'.join([data_dir, 'data466_-10.pickle'])), 'rb')
     #meta = open(os.path.normpath('/'.join([data_dir, 'metadatas733_-40.pickle'])), 'rb')
