@@ -216,8 +216,8 @@ def load_audio(data_dir):
 def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
 
     L = 31000000
-    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
-    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_466_-10.wav'])))
+    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
+    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_466_-10.wav'])))
     #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_733_-40.wav'])))
     for file in file_dirs:
         fs, audio_stereo = wavfile.read(file)  # fs= 96,000 Hz
@@ -239,11 +239,11 @@ def prediction_accuracy(tar, pred, inp, fs, data_dir, name):
         plot_time(tar[start:stop], pred[start:stop], inp[start:stop], fs, data_dir, name + sig_name[l])
         plot_fft(tar[start:stop], pred[start:stop], inp[start:stop], fs, data_dir, name + sig_name[l])
         pred_name = name + sig_name[l] + '_pred.wav'
-        #tar_name = name + sig_name[l] + '_tar.wav'
+        tar_name = name + sig_name[l] + '_tar.wav'
         pred_dir = os.path.normpath(os.path.join(data_dir, pred_name))
-        #tar_dir = os.path.normpath(os.path.join(data_dir, tar_name))
-        #wavfile.write(pred_dir, int(fs), pred[start:stop])
-        #wavfile.write(tar_dir, int(fs), tar[start:stop])
+        tar_dir = os.path.normpath(os.path.join(data_dir, tar_name))
+        wavfile.write(pred_dir, int(fs), pred[start:stop])
+        wavfile.write(tar_dir, int(fs), tar[start:stop])
 def create_ref(data_dir='/Users/riccardosimionato/PycharmProjects/All_Results'):
     inp, tar, fs = load_ref()
     sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
@@ -368,8 +368,8 @@ def load_model_lstm_enc_dec(T, encoder_units, decoder_units,drop, model_save_dir
     decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
     return encoder_model, decoder_model
-def load_model_lstm_enc_dec_v2(T,encoder_units, decoder_units, drop, model_save_dir):
-    encoder_inputs = Input(shape=(T-1,3), name='enc_input')
+def load_model_lstm_enc_dec_v2(T, D, encoder_units, decoder_units, drop, model_save_dir):
+    encoder_inputs = Input(shape=(T-1,D), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)
     if len(encoder_units) > 0:
         last_unit_encoder = encoder_units.pop()
@@ -477,20 +477,21 @@ def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, nam
         wavfile.write(inp_dir, int(fs), x_gen)
         wavfile.write(tar_dir, int(fs), y_gen)
 def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, generate):
-    #x_, y_ , scaler = get_data(data_dir='../Files', start=start, stop=stop, T=T)
 
-    data_ = '../Files'
-    file_data = open(os.path.normpath('/'.join([data_, 'data_never_seen_w16.pickle'])), 'rb')
-    data = pickle.load(file_data)
-    x_ = data['x']
-    fs = data['fs']
-    scaler = data['scaler']
+    x_, y_ , scaler = get_data(data_dir='../Files', start=start, stop=stop, T=T)
+    # data_ = '../Files'
+    # file_data = open(os.path.normpath('/'.join([data_, 'data_never_seen_w16.pickle'])), 'rb')
+    # data = pickle.load(file_data)
+    # x_ = data['x']
+    # fs = data['fs']
+    # scaler = data['scaler']
 
     predictions = model.predict([x_[:, :-1, :], x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
 
     if generate:
         predictions = np.array(predictions)
-        predictions = scaler[0].inverse_transform(predictions)
+        if scaler is not None:
+            predictions = scaler[0].inverse_transform(predictions)
         predictions = predictions.reshape(-1)
         pred_name = name + '_pred.wav'
         pred_dir = os.path.normpath(os.path.join(data_dir, pred_name))

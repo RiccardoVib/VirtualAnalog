@@ -18,7 +18,7 @@ from GetData_for_v2 import get_data
 
 fs = 48000
 
-model_dir='LSTM_32_32'
+model_dir='LSTM_32_32_sig'
 units=[32, 32]
 drop=0.
 w=1

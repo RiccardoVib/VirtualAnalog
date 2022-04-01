@@ -3,6 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from statistics import mean
 
+def custom_loss_function(y_true, y_pred):
+    mse = tf.keras.metrics.mean_squared_error(y_true, y_pred)
+    #squared_difference = tf.square(tf.abs(y_true - y_pred))
+    #loss = squared_difference/tf.square(tf.abs(y_true))
+    squared_difference_dc = tf.square(tf.abs(y_true - y_pred))/(y_true.shape[0])
+    mse_dc = squared_difference_dc/(tf.square(tf.abs(y_true))/y_true.shape[0])
+    return mse+mse_dc#tf.reduce_mean(squared_difference, axis=-1)
+
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
         super(CustomSchedule, self).__init__()

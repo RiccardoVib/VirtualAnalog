@@ -75,29 +75,30 @@ def data_preparation(**kwargs):
 
         if test_rec == False:
 
-            # # find
-            # sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
-            # sec = [32, 135, 238, 240.9, 308.7]
-            # sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
-            # start = np.zeros(len(sig_name), dtype=int)
-            # stop = np.zeros(len(sig_name), dtype=int)
-            # for l in range(len(sig_name)):
-            #     start[l] = int(sec[l] * fs // factor)
-            #     stop[l] = int(sec_end[l] * start[l])
-            #
-            # sweep_inp = inp[start[0]:stop[0]]
-            # guitar_inp = inp[start[1]:stop[1]]
-            # drumKick_inp = inp[start[2]:stop[2]]
-            # drumHH_inp = inp[start[3]:stop[3]]
-            # bass_inp = inp[start[4]:stop[4]]
-            # sweep_tar = tar[start[0]:stop[0]]
-            # guitar_tar = tar[start[1]:stop[1]]
-            # drumKick_tar = tar[start[2]:stop[2]]
-            # drumHH_tar = tar[start[3]:stop[3]]
-            # bass_tar = tar[start[4]:stop[4]]
-            #
-            #
-            #
+            # find
+            sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
+            sec = [32, 135, 238, 240.9, 308.7]
+            sec_end = [1.5, 1.019, 1.0025, 1.0018, 1.007]
+            start = np.zeros(len(sig_name), dtype=int)
+            stop = np.zeros(len(sig_name), dtype=int)
+            for l in range(len(sig_name)):
+                start[l] = int(sec[l] * fs // factor)
+                stop[l] = int(sec_end[l] * start[l])
+
+            sweep_inp = inp[start[0]:stop[0]]
+            guitar_inp = inp[start[1]:stop[1]]
+            drumKick_inp = inp[start[2]:stop[2]]
+            drumHH_inp = inp[start[3]:stop[3]]
+            bass_inp = inp[start[4]:stop[4]]
+            sweep_tar = tar[start[0]:stop[0]]
+            guitar_tar = tar[start[1]:stop[1]]
+            drumKick_tar = tar[start[2]:stop[2]]
+            drumHH_tar = tar[start[3]:stop[3]]
+            bass_tar = tar[start[4]:stop[4]]
+
+            inp = np.concatenate((sweep_inp, guitar_inp, drumKick_inp, drumHH_inp, bass_inp))
+            tar = np.concatenate((sweep_tar, guitar_tar, drumKick_tar, drumHH_tar, bass_tar))
+
             # # remove
             # inp1 = inp[:start[0]]
             # inp2 = inp[stop[0] + 1:start[1]]
@@ -129,45 +130,48 @@ def data_preparation(**kwargs):
             test_rec = False
 
 
-    # train files
     metadatas = {'ratio': ratio_collector, 'threshold': threshold_collector, 'samplerate': fs/factor}
     data = {'inp': inp_collector, 'tar': tar_collector}
-    # test files
-    metadatas_test = {'ratio': ratio_test, 'threshold': threshold_test, 'samplerate': fs/factor}
-    data_test = {'inp': inp_test, 'tar': tar_test}
-    # never seen files
-    metadatas_never_seen = {'ratio': ratio_collector_never_seen, 'threshold': threshold_collector_never_seen, 'samplerate': fs/factor}
-    data_never_seen = {'inp': inp_collector_never_seen, 'tar': tar_collector_never_seen}
-
-    # open a file, where you ant to store the data
-    # train files
-    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas_train_float.pickle'])), 'wb')
-    file_data = open(os.path.normpath('/'.join([save_dir,'data_train_float.pickle'])), 'wb')
-    # test files
-    file_metadatas_test = open(os.path.normpath('/'.join([save_dir,'metadatas_test_float.pickle'])), 'wb')
-    file_data_test = open(os.path.normpath('/'.join([save_dir,'data_test_float.pickle'])), 'wb')
-    # never seen files
-    file_metadatas_never_seen = open(os.path.normpath('/'.join([save_dir,'metadatas_never_seen_float.pickle'])), 'wb')
-    file_data_never_seen = open(os.path.normpath('/'.join([save_dir,'data_never_seen_float.pickle'])), 'wb')
-
-    # dump information to that file
-    #train files
+    #
+    # # train files
+    # metadatas = {'ratio': ratio_collector, 'threshold': threshold_collector, 'samplerate': fs/factor}
+    # data = {'inp': inp_collector, 'tar': tar_collector}
+    # # test files
+    # metadatas_test = {'ratio': ratio_test, 'threshold': threshold_test, 'samplerate': fs/factor}
+    # data_test = {'inp': inp_test, 'tar': tar_test}
+    # # never seen files
+    # metadatas_never_seen = {'ratio': ratio_collector_never_seen, 'threshold': threshold_collector_never_seen, 'samplerate': fs/factor}
+    # data_never_seen = {'inp': inp_collector_never_seen, 'tar': tar_collector_never_seen}
+    #
+    # # open a file, where you ant to store the data
+    # # train files
+    file_metadatas = open(os.path.normpath('/'.join([save_dir,'metadatas_test.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([save_dir,'data_test.pickle'])), 'wb')
+    # # test files
+    # file_metadatas_test = open(os.path.normpath('/'.join([save_dir,'metadatas_test_float.pickle'])), 'wb')
+    # file_data_test = open(os.path.normpath('/'.join([save_dir,'data_test_float.pickle'])), 'wb')
+    # # never seen files
+    # file_metadatas_never_seen = open(os.path.normpath('/'.join([save_dir,'metadatas_never_seen_float.pickle'])), 'wb')
+    # file_data_never_seen = open(os.path.normpath('/'.join([save_dir,'data_never_seen_float.pickle'])), 'wb')
+    #
+    # # dump information to that file
+    # #train files
     pickle.dump(metadatas, file_metadatas)
     pickle.dump(data, file_data)
-    #test files
-    pickle.dump(metadatas_test, file_metadatas_test)
-    pickle.dump(data_test, file_data_test)
-    #never seen files
-    pickle.dump(metadatas_never_seen, file_metadatas_never_seen)
-    pickle.dump(data_never_seen, file_data_never_seen)
-
-    # close the file
+    # #test files
+    # pickle.dump(metadatas_test, file_metadatas_test)
+    # pickle.dump(data_test, file_data_test)
+    # #never seen files
+    # pickle.dump(metadatas_never_seen, file_metadatas_never_seen)
+    # pickle.dump(data_never_seen, file_data_never_seen)
+    #
+    # # close the file
     file_metadatas.close()
     file_data.close()
-    file_metadatas_test.close()
-    file_data_test.close()
-    file_metadatas_never_seen.close()
-    file_data_never_seen.close()
+    # file_metadatas_test.close()
+    # file_data_test.close()
+    # file_metadatas_never_seen.close()
+    # file_data_never_seen.close()
 
 if __name__ == '__main__':
 
