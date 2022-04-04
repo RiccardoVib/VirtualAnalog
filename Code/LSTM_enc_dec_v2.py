@@ -7,7 +7,7 @@ import os
 import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from TrainFunctionality import coefficient_of_determination
+from TrainFunctionality import root_mean_squared_error
 from GetData2 import get_data
 from scipy.io import wavfile
 from scipy import signal
@@ -109,6 +109,8 @@ def trainLSTM(data_dir, epochs, seed=422, data=None, **kwargs):
         model.compile(loss='mae', metrics=['mae'], optimizer=opt)
     elif loss_type == 'mse':
         model.compile(loss='mse', metrics=['mse'], optimizer=opt)
+    elif loss_type == 'rmse':
+        model.compile(loss=root_mean_squared_error, metrics=['root_mean_squared_error'], optimizer=opt)
     else:
         raise ValueError('Please pass loss_type as either MAE or MSE')
 

@@ -273,8 +273,6 @@ def retrive_info(architecture, model_dir, units, drop, w):
 if __name__ == '__main__':
 
     #retrive_info(architecture='dense', model_dir='DenseFeed_32_32', units=[32, 32], drop=0., w=1)
-    #retrive_info(architecture='lstm', model_dir='LSTM_32_32_tanh_in_mid', units=[32, 32], drop=0., w=1)
+    #retrive_info(architecture='lstm', model_dir='LSTM_32_32_lin', units=[32, 32], drop=0., w=1)
     #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_32_32', units=[32, 32], drop=0., w=2)
-    #retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_lin', units=[64, 64], drop=0., w=16)
-    #pedal
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_mae', units=[64, 64], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec_v2', model_dir='ED_64_64_rmse', units=[64, 64], drop=0., w=16)

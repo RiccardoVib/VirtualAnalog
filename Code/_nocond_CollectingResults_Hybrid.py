@@ -1,5 +1,4 @@
-from ProperEvaluationAllModels import load_audio, prediction_accuracy, measure_performance, measure_time, load_model_dense, load_model_lstm
-from ProperEvaluationAllModels import load_model_lstm_enc_dec, load_model_lstm_enc_dec_v2, inferenceLSTM_enc_dec, inferenceLSTM_enc_dec_v2
+from ProperEvaluationAllModels import load_audio, prediction_accuracy, measure_performance, measure_time, load_model_hybrid
 from ProperEvaluationAllModels import plot_time, plot_fft, create_ref, spectrogram, load_ref
 import os
 import pickle
@@ -18,17 +17,17 @@ from GetData_for_v2 import get_data
 
 fs = 48000
 
-model_dir='LSTM_32_32_tanh'
+model_dir='Hybrid_32_32'
 units=[32, 32]
 drop=0.
 w=1
 
-dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_trials/'
+dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/Hybrid/'
 data_dir = os.path.normpath(os.path.join(dir, model_dir))
-name = 'LSTM_condition'
+name = 'Hibrid_condition'
 T=1
 
-model = load_model_lstm(T, units, drop, model_save_dir=data_dir)
+model = load_model_hybrid(T, units, drop, model_save_dir=data_dir)
 
 sig_name = ['_sweep_', '_guitar_', '_drumKick_', '_drumHH_', '_bass_']
 sec = [32, 135, 238, 240.9, 308.7]

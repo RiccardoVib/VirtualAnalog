@@ -216,8 +216,8 @@ def load_audio(data_dir):
 def load_ref(data_dir = '/Users/riccardosimionato/Datasets/VA'):
 
     L = 31000000
-    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
-    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_466_-10.wav'])))
+    file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_333_-30.wav'])))
+    #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_466_-10.wav'])))
     #file_dirs = glob.glob(os.path.normpath('/'.join([data_dir, 'TubeTech_733_-40.wav'])))
     for file in file_dirs:
         fs, audio_stereo = wavfile.read(file)  # fs= 96,000 Hz
@@ -312,6 +312,33 @@ def load_model_lstm(T,units,drop, model_save_dir):
     else:
         raise ValueError('Something wrong!')
     return model
+
+def load_model_hybrid(T,units,drop, model_save_dir):
+    inputs = Input(shape=(T, 3), name='enc_input')
+    first_unit_encoder = units.pop(0)
+    if len(units) > 0:
+        last_unit_encoder = units.pop()
+        outputs = LSTM(first_unit_encoder, return_sequences=True, name='LSTM_En0')(inputs)
+        for i, unit in enumerate(units):
+            outputs, state_h, state_c = LSTM(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
+        outputs = LSTM(last_unit_encoder, name='LSTM_EnFin')(outputs)
+    else:
+        outputs = LSTM(first_unit_encoder, name='LSTM_En')(inputs)
+    if drop != 0.:
+        outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
+    outputs = Dense(32, activation='tanh', name='NonlinearDenseLay')(outputs)
+    outputs = Dense(1, name='DenseLay')(outputs)
+    model = Model(inputs, outputs)
+
+    ckpt_dir = os.path.normpath(os.path.join(model_save_dir, 'Checkpoints', 'best'))
+    latest = tf.train.latest_checkpoint(ckpt_dir)
+    if latest is not None:
+        print("Restored weights from {}".format(ckpt_dir))
+        model.load_weights(latest)
+    else:
+        raise ValueError('Something wrong!')
+    return model
+
 def load_model_lstm_enc_dec(T, encoder_units, decoder_units,drop, model_save_dir):
     encoder_inputs = Input(shape=(T, 3), name='enc_input')
     first_unit_encoder = encoder_units.pop(0)

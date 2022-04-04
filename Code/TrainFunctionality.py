@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from statistics import mean
+from keras import backend as K
 
 def custom_loss_function(y_true, y_pred):
     mse = tf.keras.metrics.mean_squared_error(y_true, y_pred)
@@ -10,6 +11,9 @@ def custom_loss_function(y_true, y_pred):
     squared_difference_dc = tf.square(tf.abs(y_true - y_pred))/(y_true.shape[0])
     mse_dc = squared_difference_dc/(tf.square(tf.abs(y_true))/y_true.shape[0])
     return mse+mse_dc#tf.reduce_mean(squared_difference, axis=-1)
+
+def root_mean_squared_error(y_true, y_pred):
+    return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
