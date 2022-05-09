@@ -47,8 +47,8 @@ def data_preparation(**kwargs):
         inp = audio_stereo[:L, 0].astype(np.float32)
         tar = audio_stereo[1:L + 1, 1].astype(np.float32)
 
-        inp_never_seen = audio_stereo[L:, 0].astype(np.float32)
-        tar_never_seen = audio_stereo[L + 1:, 1].astype(np.float32)
+        #inp_never_seen = audio_stereo[L:, 0].astype(np.float32)
+        #tar_never_seen = audio_stereo[L + 1:, 1].astype(np.float32)
 
         ratio = str(ratio)
         if len(ratio) > 2:

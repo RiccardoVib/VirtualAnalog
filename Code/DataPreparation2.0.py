@@ -57,9 +57,7 @@ def data_preparation(**kwargs):
         tar = audio_format.pcm2float(tar)
 
         inp = signal.resample_poly(inp, 1, factor)
-        inp_never_seen = signal.resample_poly(inp_never_seen, 1, factor)
         tar = signal.resample_poly(tar, 1, factor)
-        tar_never_seen = signal.resample_poly(tar_never_seen, 1, factor)
 
         inp_never_seen = signal.resample_poly(inp_never_seen, 1, factor)
         tar_never_seen = signal.resample_poly(tar_never_seen, 1, factor)

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from statistics import mean
 from keras import backend as K
 
+
 def custom_loss_function(y_true, y_pred):
     mse = tf.keras.metrics.mean_squared_error(y_true, y_pred)
     #squared_difference = tf.square(tf.abs(y_true - y_pred))
@@ -11,6 +12,16 @@ def custom_loss_function(y_true, y_pred):
     squared_difference_dc = tf.square(tf.abs(y_true - y_pred))/(y_true.shape[0])
     mse_dc = squared_difference_dc/(tf.square(tf.abs(y_true))/y_true.shape[0])
     return mse+mse_dc#tf.reduce_mean(squared_difference, axis=-1)
+
+
+def ESR_loss_function(y_true, y_pred):
+    return tf.divide(K.sum(K.square(y_pred - y_true)), K.sum(K.square(y_true)))
+
+def FFT_loss_function(y_true, y_pred):
+    Y_true = tf.signal.rfft(tf.reshape(y_true, [-1]))
+    Y_pred = tf.signal.rfft(tf.reshape(y_pred, [-1]))
+    return tf.keras.metrics.mean_absolute_error(tf.math.real(Y_true), tf.math.real(Y_pred))
+
 
 def root_mean_squared_error(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
@@ -74,6 +85,23 @@ def accuracy_function(real, pred):
     mask = tf.cast(mask, dtype=tf.float32)
     return tf.reduce_sum(accuracies)/tf.reduce_sum(mask)
 
+def squared_error(ys_orig, ys_pred):
+    return sum((ys_pred - ys_orig) * (ys_pred - ys_orig))
+
+
+def coefficient_of_determination(ys_orig, ys_pred):
+    y_mean_line = [mean(ys_orig) for y in ys_orig]
+    squared_error_regr = squared_error(ys_orig, ys_pred)
+    squared_error_y_mean = squared_error(ys_orig, y_mean_line)
+    return 1 - (squared_error_regr / squared_error_y_mean)
+
+
+def error_to_signal_ratio(ys_orig, ys_pred):
+    num, den = 0,0
+    for n in range(len(ys_orig)):
+        num += (ys_orig[n] - ys_pred[n])**2
+        den += ys_orig[n]**2
+    return np.divide(num,den)
 
 class PlotLossesSame:
     def __init__(self, start_epoch, **kwargs):
@@ -103,21 +131,61 @@ class PlotLossesSame:
         self.fig.canvas.flush_events()
 
 
-def squared_error(ys_orig, ys_pred):
-    return sum((ys_pred - ys_orig) * (ys_pred - ys_orig))
+class PlotLossesSubPlots:
+    def __init__(self, start_epoch, **kwargs):
+        self.epochs = [int(start_epoch)]
+        inputs = copy.deepcopy(kwargs)
+        self.results = inputs
 
+        plt.ion()
 
-def coefficient_of_determination(ys_orig, ys_pred):
-    y_mean_line = [mean(ys_orig) for y in ys_orig]
-    squared_error_regr = squared_error(ys_orig, ys_pred)
-    squared_error_y_mean = squared_error(ys_orig, y_mean_line)
-    return 1 - (squared_error_regr / squared_error_y_mean)
+        if len(self.results) > 3:
+            self.fig, self.axs = plt.subplots(2, (len(self.results) + 1)//2, figsize=(13, 7))
+        else:
+            self.fig, self.axs = plt.subplots(1, len(self.results), figsize=(13, 5))
+        self.axs = self.axs.flatten()
 
+        if isinstance(inputs[list(inputs.keys())[0]], dict):
+            self.multlines = True
+            for j, (group, results) in enumerate(self.results.items()):
+                self.axs[j].yaxis.set_major_formatter(FormatStrFormatter('%.8f'))
+                for i, (metric, sub_results) in enumerate(results.items()):
+                    if not isinstance(sub_results, list):
+                        self.results[group][metric] = [sub_results]
+                    self.axs[j].plot(np.arange(len(self.results[group][metric])), self.results[group][metric],
+                                     label=metric, alpha=0.5)
+                self.axs[j].set_title(group)
+                self.axs[j].legend()
+                self.axs[j].grid()
+        else:
+            self.multlines = False
+            for j, (metric, values) in enumerate(self.results.items()):
+                if not isinstance(values, list):
+                    self.results[metric] = [values]
+                self.axs[j].plot([], [])
+                self.axs[j].set_title(metric)
+                self.axs[j].grid()
+                self.axs[j].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
 
-def error_to_signal_ratio(ys_orig, ys_pred):
-    num, den = 0,0
-    for n in range(len(ys_orig)):
-        num += (ys_orig[n] - ys_pred[n])**2
-        den += ys_orig[n]**2
-    return np.divide(num,den)
+    def on_epoch_end(self, **kwargs):
+        # self.epochs.append(self.epochs[-1] + 1)
+        inputs = copy.deepcopy(kwargs)
 
+        if self.multlines:
+            for i, (group, results) in enumerate(self.results.items()):
+                for j, (metric, sub_results) in enumerate(results.items()):
+                    if not isinstance(inputs[group][metric], list):
+                        sub_results.append(inputs[group][metric])
+                    else:
+                        sub_results += inputs[group][metric]
+                    self.axs[i].lines[j].set_data(np.arange(len(self.results[group][metric])), self.results[group][metric])
+                self.axs[i].relim()
+                self.axs[i].autoscale_view()
+        else:
+            for i, (metric, sub_results) in enumerate(self.results.items()):
+                sub_results.append(inputs[metric])
+                self.axs[i].lines[0].set_data(np.arange(sub_results), sub_results)
+                self.axs[i].relim()
+                self.axs[i].autoscale_view()
+
+        self.fig.canvas.flush_events()

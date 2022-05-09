@@ -159,10 +159,10 @@ def measure_time(model, x_test, y_test, enc_dec, v2, data_dir, fs, scaler, T):
     if enc_dec:
         if v2:
             start = time.time()
-            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, T=T, start=0, stop=x_test.shape[0], name='test_time', generate=False)
+            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, T=T, start=0, stop=17, name='test_time', generate=False, measuring=True)
             end = time.time()
-            time_s = (end - start)/x_test.shape[0]
-            print('Time: %.6f' % time_s)
+            time_s = (end - start)#/x_test.shape[0]
+            #print('Time: %.6f' % time_s)
         else:
             encoder_model = model[0]
             decoder_model = model[1]
@@ -503,7 +503,7 @@ def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, nam
         wavfile.write(pred_dir, int(fs), predictions)
         wavfile.write(inp_dir, int(fs), x_gen)
         wavfile.write(tar_dir, int(fs), y_gen)
-def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, generate):
+def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, generate, measuring):
 
     x_, y_ , scaler = get_data(data_dir='../Files', start=start, stop=stop, T=T)
     # data_ = '../Files'
@@ -512,8 +512,14 @@ def inferenceLSTM_enc_dec_v2(data_dir, model, fs, scaler, T, start, stop, name, 
     # x_ = data['x']
     # fs = data['fs']
     # scaler = data['scaler']
-
-    predictions = model.predict([x_[:, :-1, :], x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
+    if measuring:
+        start = time.time()
+        predictions = model.predict([x_[:, :-1, :].reshape(x_.shape[0], 15, 3), x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
+        end = time.time()
+        time_s = (end - start)/x_.shape[0]
+        print('Time: %.6f' % time_s)
+    else:
+        predictions = model.predict([x_[:, :-1, :], x_[:, -1, 0].reshape(x_.shape[0], 1, 1)])
 
     if generate:
         predictions = np.array(predictions)

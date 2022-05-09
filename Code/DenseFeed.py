@@ -212,6 +212,7 @@ def trainDense(data_dir, epochs, seed=422, data=None, **kwargs):
 if __name__ == '__main__':
     data_dir = '../Files'
     seed = 422
+
     trainDense(data_dir=data_dir,
                model_save_dir='../../TrainedModels',
                save_folder='DenseFeed_Testing_prova_input',

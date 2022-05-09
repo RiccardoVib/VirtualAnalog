@@ -121,7 +121,6 @@ class EncoderLayer(tf.keras.layers.Layer):
 
         return out2
 
-
 class DecoderLayer(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, dff, rate=0.1):
         super(DecoderLayer, self).__init__()
@@ -193,6 +192,7 @@ class Encoder(tf.keras.layers.Layer):
         return x  # (batch_size, input_seq_len, d_model)
 
 #@tf.autograph.experimental.do_not_convert
+
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, num_layers, d_model, num_heads, dff, target_vocab_size,
                  maximum_position_encoding, rate=0.1):
@@ -270,9 +270,7 @@ class Transformer(tf.keras.Model):
         # Used in the 1st attention block in the decoder.
         # It is used to pad and mask future tokens in the input received by
         # the decoder.
-        #look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[1])
-        #n
-        look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[0])
+        look_ahead_mask = create_look_ahead_mask(tf.shape(tar)[1])
         # dec_target_padding_mask = create_padding_mask(tar)
         # look_ahead_mask = tf.maximum(dec_target_padding_mask, look_ahead_mask)
 

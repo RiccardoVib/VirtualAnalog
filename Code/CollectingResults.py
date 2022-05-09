@@ -218,7 +218,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
     if architecture == 'lstm_enc_dec_v2':
         dir = '/Users/riccardosimionato/PycharmProjects/TrialsDAFx/LSTM_enc_dec_v2_trials/'
         data_dir = os.path.normpath(os.path.join(dir, model_dir))
-        data_dir_ref = '/Users/riccardosimionato/PycharmProjects/All_Results'
+        data_dir_ref = '/Users/riccardosimionato/PycharmProjects/All_Results/TubeTech'
         name = 'LSTM_enc_dec_v2'
         T = x_test.shape[1]
         D = x_test.shape[2]
@@ -234,7 +234,7 @@ def retrive_info(architecture, model_dir, units, drop, w):
         for l in range(len(sig_name)):
             start = int(sec[l] * fs)
             stop = int(sec_end[l] * start)
-            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=start, stop=stop, T=T, name=sig_name[l], generate=True)
+            inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=start, stop=stop, T=T, name=sig_name[l], generate=True, measuring=False)
 
         all_results = []
         for l in range(len(sig_name)):
@@ -275,4 +275,4 @@ if __name__ == '__main__':
     #retrive_info(architecture='dense', model_dir='DenseFeed_32_32', units=[32, 32], drop=0., w=1)
     #retrive_info(architecture='lstm', model_dir='LSTM_32_32_lin', units=[32, 32], drop=0., w=1)
     #retrive_info(architecture='lstm_enc_dec', model_dir='LSTM_enc_dec_32_32', units=[32, 32], drop=0., w=2)
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='ED_64_64_rmse', units=[64, 64], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec_v2', model_dir='ED_mape', units=[64, 64], drop=0., w=16)

@@ -27,7 +27,7 @@ def plot_spectral(Zxx, title, save_dir=None):
 
 
 
-def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
+def train_RAMT(data_dir, data, epochs, seed=422, **kwargs):
 
     # -----------------------------------------------------------------------------------------------------------------
     # Set-up model, optimiser, lr_sched and losses:
@@ -48,16 +48,19 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     inference_flag = kwargs.get('inference_flag', False)
     device_num = kwargs.get('device_num', None)
     loss_type = kwargs.get('loss_type', 'mse')
-
+    
     # Get the data:
-    x = data['x']
-    y = data['y']
-    x_val = data['x_val']
-    y_val = data['y_val']
-    x_test = data['x_test']
-    y_test = data['y_test']
-    scaler = data['scaler']
-
+    if data is None:
+        x, y, x_val, y_val, x_test, y_test, scaler, fs = get_data(data_dir=data_dir, w_length=w_length, seed=seed)
+    else:
+        x = data['x']
+        y = data['y']
+        x_val = data['x_val']
+        y_val = data['y_val']
+        x_test = data['x_test']
+        y_test = data['y_test']
+        scaler = data['scaler']
+        
     max_length = x.shape[1]
     #output_dim = x.shape[-1]
     output_dim = 1
@@ -70,6 +73,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     else:
         raise ValueError('Please pass opt_type as either Adam or SGD')
 
+        
+        
     opt = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
     transformer = Transformer.Transformer(num_layers=num_layers,
                                           d_model=d_model,
@@ -83,12 +88,12 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
                                           rate=drop)  # Dropout rate
 
     if loss_type == 'mae':
-        loss_fn = tf.keras.losses.MeanAbsoluteError()
+        loss_fn = tf.keras.losses.MeanAbsoluteError()   
     elif loss_type == 'mse':
         loss_fn = tf.keras.losses.MeanSquaredError()
     else:
         raise ValueError('Please pass loss_type as either MAE or MSE')
-
+    
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     val_loss = tf.keras.metrics.Mean(name='val_loss')
     test_loss = tf.keras.metrics.Mean(name='test_loss')
@@ -100,12 +105,11 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     def train_step(inp, tar):
         #tar_inp = tar[:, :-1]
         #tar_real = tar[:, 1:]
-        inp_ = inp[:, :-1, :]
-        tar_inp = inp[:, -1, 0]
+        tar_inp = inp[:, -1]
         tar_real = tar[:, -1]
-
+        
         with tf.GradientTape() as tape:
-            predictions, _ = transformer([inp_, tar_inp], training=True)
+            predictions, _ = transformer([inp, tar_inp], training=True)
 
             loss = loss_fn(tar_real, predictions[:, :, 0]) #TODO: dimensioni sbagliate
 
@@ -114,13 +118,13 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
         train_loss.update_state(loss)
 
-    @tf.function
+    #@tf.function
     def val_step(inp, tar, testing=False):
         #tar_inp = tar[:, :-1]
         #tar_real = tar[:, 1:]
-        tar_inp = inp[:, -1, :]
+        tar_inp = inp[:, -1]
         tar_real = tar[:, -1]
-
+        
         predictions, attn_weights = transformer([inp, tar_inp], training=False)
 
         loss = loss_fn(tar_real, predictions[:, :, 0])
@@ -165,8 +169,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
                 loaded = tf.saved_model.load(save_model_latest)
 
             # Need to make a single prediction for the model as it needs to compile:
-            transformer([tf.constant(x[:2,:,:], dtype='float32'),
-                         tf.constant(x[:2,-1,:], dtype='float32')],
+            transformer([tf.constant(x[:2,:,0], dtype='float32'),
+                         tf.constant(y[:2,:-1], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -175,17 +179,16 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         else:
             print('Weights were randomly initialised')
 
-            # Try to load loss figure plot if exists
-            if os.path.exists(
-                    os.path.normpath('/'.join([model_save_dir, save_folder, 'fig_progress.pickle']))) and plot_progress:
-                try:
-                    fig_progress = pickle.load(
-                        open(os.path.normpath('/'.join([model_save_dir, save_folder, 'fig_progress.pickle'])), 'rb'))
-                except (ValueError, Exception):
-                    print('Could not load loss figure')
-                    pass
+        # Try to load loss figure plot if exists
+        if os.path.exists(os.path.normpath('/'.join([model_save_dir, save_folder, 'fig_progress.pickle']))) and plot_progress:
+            try:
+                fig_progress = pickle.load(
+                    open(os.path.normpath('/'.join([model_save_dir, save_folder, 'fig_progress.pickle'])), 'rb'))
+            except (ValueError, Exception):
+                print('Could not load loss figure')
+                pass
 
-        ckpt_interval = 1
+    ckpt_interval = 1
 
     # -----------------------------------------------------------------------------------------------------------------
     # Train the model
@@ -217,14 +220,15 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
             # Print progbar
             if batch_num % summary_res == 0:
                 values = [('Loss: ', train_loss.result())]
-                pb_i.add(b_size*summary_res, values=values)
+                #pb_i.add(b_size*summary_res, values=values)
 
         # -------------------------------------------------------------------------------------------------------------
         # Validate the model
         # -------------------------------------------------------------------------------------------------------------
 
         # Get batches
-        x_batches, y_batches = x_val, y_val
+        x_batches = x_val
+        y_batches = y_val
         for batch_num in range(len(x_batches)):
             x_batch = x_batches[batch_num*b_size:batch_num*b_size+b_size]
             y_batch = y_batches[batch_num*b_size:batch_num*b_size+b_size]
@@ -237,17 +241,18 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # Print validation losses:
         print('\nValidation Loss:', val_loss.result().numpy())
 
+
         # -------------------------
         # *** Checkpoint Model: ***
         # -------------------------
         if ckpt_flag:
-            if (epoch % ckpt_interval == 0) or (val_loss.result() < min_val_error):
+            if (epoch % ckpt_interval == 0) or (val_loss_mse.result() < min_val_error):
                 to_save = tf.Module()
                 to_save.inference = inference
                 to_save.all_variables = list(transformer.variables)
                 tf.saved_model.save(to_save, save_model_latest)
 
-                if val_loss.result() < min_val_error:
+                if val_loss_mse.result() < min_val_error:
                     print('*** New Best Model Saved to %s ***' % save_model_best)
                     to_save = tf.Module()
                     to_save.inference = inference
@@ -265,13 +270,34 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         # -----------------------------
         if plot_progress:
             if 'fig_progress' not in locals():
+                # fig_progress = PlotLossesSame(epoch + 1,
+                #                               Training=train_loss.result().numpy(),
+                #                               Validation=val_loss.result().numpy(),
+                #                               Val_Thres=val_loss_thres.result().numpy(),
+                #                               Val_sThres=val_loss_sthres.result().numpy(),
+                #                               Val_MAE=val_loss_mae.result().numpy(),
+                #                               Val_MSE=val_loss_mse.result().numpy())
                 fig_progress = PlotLossesSubPlots(epoch + 1,
-                                              Training=train_loss.result().numpy(),
-                                              Validation=val_loss.result().numpy())
-
+                                                  Losses1={
+                                                      'Training': train_loss.result().numpy(),
+                                                      'Validation': val_loss.result().numpy(),
+                                                  },
+                                                  Losses2={
+                                                      'Val_MAE': val_loss_mae.result().numpy(),
+                                                      'Val_MSE': val_loss_mse.result().numpy()
+                                                  })
             else:
-                fig_progress.on_epoch_end(Training=train_loss.result().numpy(),
-                                          Validation=val_loss.result().numpy())
+                # fig_progress.on_epoch_end(Training=train_loss.result().numpy(),
+                #                           Validation=val_loss.result().numpy(),
+                #                           Val_Thres=val_loss_thres.result().numpy(),
+                #                           Val_sThres=val_loss_sthres.result().numpy(),
+                #                           Val_MAE=val_loss_mae.result().numpy(),
+                #                           Val_MSE=val_loss_mse.result().numpy())
+                fig_progress.on_epoch_end(
+                    Losses1={
+                        'Training': train_loss.result().numpy(),
+                        'Validation': val_loss.result().numpy(),
+                    })
 
             # Store the plot if ckpting:
             if ckpt_flag:
@@ -308,8 +334,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
             loaded = tf.saved_model.load(save_model_best)
 
             # Need to make a single prediction for the model as it needs to compile:
-            transformer([tf.constant(x[:2, :.1, :], dtype='float32'),
-                         tf.constant(x[:2, -1, :], dtype='float32')],
+            transformer([tf.constant(x[:2, :, 0], dtype='float32'),
+                         tf.constant(y[:2, :-1], dtype='float32')],
                         training=False)
             for i in range(len(transformer.variables)):
                 if transformer.variables[i].name != loaded.all_variables[i].name:
@@ -335,22 +361,21 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
 
     print('\n\nTest Loss: ', test_loss.result().numpy())
 
-
     results = {
         'Test_Loss': test_loss.result().numpy(),
         'b_size': b_size,
+        'loss_type':loss_type,
         'num_layers': num_layers,
         'd_model': d_model,
         'dff': dff,
         'num_heads': num_heads,
         'drop': drop,
-        'loss_type':loss_type,
         'n_params': n_params,
         'learning_rate': learning_rate if isinstance(learning_rate, float) else 'Sched',
         'min_val_loss': np.min(_logs[1]),
         'min_train_loss': np.min(_logs[0]),
         'val_loss': _logs[1]
-        #'train_loss': _logs[0]
+        #'train_loss': _logs[0],
     }
 
     print(results)
@@ -364,6 +389,8 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
     # -----------------------------------------------------------------------------------------------------------------
     # Save some Wav-file Predictions (from test set):
     # -----------------------------------------------------------------------------------------------------------------
+    # TODO: Add filename instead of indices in saved name.. Also save losses.
+    # TODO: Do this for the longformer as well...
     if generate_wav is not None:
 
         np.random.seed(seed)
@@ -371,7 +398,7 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_test
         y_gen = y_test
         predictions, _ = transformer([
-            tf.constant(x_gen, dtype='float32'),
+            tf.constant(x_gen[:, :, 0], dtype='float32'),
             tf.constant(y_gen[:, :-1], dtype='float32')],
             training=False)
         predictions = predictions.numpy()
@@ -385,38 +412,54 @@ def train_RAMT(data_dir, epochs, seed=422, data=None, **kwargs):
         x_gen = x_gen.reshape(-1)
         y_gen = y_gen.reshape(-1)
 
-        # Define directories
-        pred_name = 'Transformer_pred.wav'
-        inp_name = 'Transformer_inp.wav'
-        tar_name = 'Transformer_tar.wav'
 
-        pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
-        inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
-        tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
 
-        if not os.path.exists(os.path.dirname(pred_dir)):
-            os.makedirs(os.path.dirname(pred_dir))
+        for i, indx in enumerate(gen_indxs):
+            # Define directories
+            pred_name = 'Transformer_pred.wav'
+            inp_name = 'Transformer_inp.wav'
+            tar_name = 'Transformer_tar.wav'
 
-        # Save Wav files
-        predictions = predictions.astype('int16')
-        x_gen = x_gen.astype('int16')
-        y_gen = y_gen.astype('int16')
-        wavfile.write(pred_dir, 16000, predictions)
-        wavfile.write(inp_dir, 16000, x_gen)
-        wavfile.write(tar_dir, 16000, y_gen)
+            pred_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', pred_name))
+            inp_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', inp_name))
+            tar_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'WavPredictions', tar_name))
+
+            if not os.path.exists(os.path.dirname(pred_dir)):
+                os.makedirs(os.path.dirname(pred_dir))
+
+            # Save Wav files
+            predictions = predictions.astype('int16')
+            x_gen = x_gen.astype('int16')
+            y_gen = y_gen.astype('int16')
+            wavfile.write(pred_dir, 16000, predictions)
+            wavfile.write(inp_dir, 16000, x_gen)
+            wavfile.write(tar_dir, 16000, y_gen)
+
+            # # Save some Spectral Plots:
+            # spectral_dir = os.path.normpath(os.path.join(model_save_dir, save_folder, 'SpectralPlots'))
+            # if not os.path.exists(spectral_dir):
+            #     os.makedirs(spectral_dir)
+            # plot_spectral(Zxx=predictions[i], title='Predictions',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, pred_name)).replace('.wav', '.png'))
+            # plot_spectral(Zxx=x_gen[i], title='Inputs',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, inp_name)).replace('.wav', '.png'))
+            # plot_spectral(Zxx=y_gen[i], title='Target',
+            #               save_dir=os.path.normpath(os.path.join(spectral_dir, tar_name)).replace('.wav', '.png'))
+
 
     return results
 
+
 if __name__ == '__main__':
-    data_dir = '../Files'
+    data_dir = '/scratch/users/riccarsi/Files'
     file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w16.pickle'])), 'rb')
     data = pickle.load(file_data)
-
+    
     train_RAMT(
         data_dir=data_dir,
         data=data,
-        model_save_dir='../../Transformer_TrainedModels',
-        save_folder='Transformer_TESTING',
+        model_save_dir='/scratch/users/riccarsi/TrainedModels',
+        save_folder='Transformer_Testing',
         ckpt_flag=True,
         plot_progress=True,
         b_size=128,
@@ -425,7 +468,9 @@ if __name__ == '__main__':
         dff=32,
         num_heads=2,
         drop=0.1,
-        loss_type='mse',
-        epochs=1,
+        epochs=100,
         seed=422,
+        loss_type='mse',
+        w_length=16,
         generate_wav=None)
+
