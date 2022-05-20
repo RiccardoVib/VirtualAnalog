@@ -28,10 +28,11 @@ def predict_sinusoids(f, fs, model):
 #plotting
 
 def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
-    vmin = -40
-    f, t, Zxx = signal.stft(audio_tar, fs=fs)
+    vmin = -60#-40
+    f, t, Zxx = signal.stft(audio_tar, fs=fs, nperseg=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    plt.pcolormesh(t, f[20:], 10*np.log10(np.abs(Zxx[20:,:])), vmin=vmin, vmax=0, shading='gouraud')
+    plt.yscale('symlog')
     #plt.imshow(mat, origin="lower", cmap='gray', interpolation='nearest')
     plt.colorbar()
     plt.title('STFT Magnitude')
@@ -39,28 +40,31 @@ def spectrogram(audio_tar, audio_pred, audio_inp, fs, data_dir, name):
     plt.xlabel('Time [sec]')
     #plt.legend()
     #plt.show()
+    plt.ylim((20, 22000))
     fname = os.path.normpath(os.path.join(data_dir, name + 'tar_spectrogram.png'))
     fig.savefig(fname)
 
-    f, t, Zxx = signal.stft(audio_pred, fs=fs)
+    f, t, Zxx = signal.stft(audio_pred, fs=fs, nperseg=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    plt.pcolormesh(t, f[20:], 10*np.log10(np.abs(Zxx[20:,:])), vmin=vmin, vmax=0, shading='gouraud')
     plt.colorbar()
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
-
+    plt.yscale('symlog')
+    plt.ylim((20, 22000))
     fname = os.path.normpath(os.path.join(data_dir, name + 'pred_spectrogram.png'))
     fig.savefig(fname)
 
-    f, t, Zxx = signal.stft(audio_inp, fs=fs)
+    f, t, Zxx = signal.stft(audio_inp, fs=fs, nperseg=fs)
     fig, ax = plt.subplots()
-    plt.pcolormesh(t, f, 10*np.log10(np.abs(Zxx)), vmin=vmin, vmax=0, shading='gouraud')
+    plt.pcolormesh(t, f[20:], 10*np.log10(np.abs(Zxx[20:,:])), vmin=vmin, vmax=0, shading='gouraud')
     plt.colorbar()
     plt.title('STFT Magnitude')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
-
+    plt.yscale('symlog')
+    plt.ylim((20, 22000))
     fname = os.path.normpath(os.path.join(data_dir, name + 'inp_spectrogram.png'))
     fig.savefig(fname)
 
