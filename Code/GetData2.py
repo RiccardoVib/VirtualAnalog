@@ -64,7 +64,7 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
 
     x, y, x_val, y_val, x_test, y_test = [], [], [], [], [], []
 
-    window = int(fs * w_length)
+    window = w_length
     all_inp, all_tar = [], []
 
     for i in range(n_record):
@@ -158,15 +158,15 @@ def get_data(data_dir, n_record, shuffle, w_length, seed=422):
 if __name__ == '__main__':
 
     data_dir = '../Files'
-    w1 = 0.000021
-    w2 = 0.000045
-    w4 = 0.00009
-    w8 = 0.00017
-    w16 = 0.00034
-    x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=27, shuffle=False, w_length=w4, seed=422)
+
+    w8 = 8
+    w16 = 16
+    w32 = 32
+
+    x, y, x_val, y_val, x_test, y_test, scaler, zero_value, fs = get_data(data_dir=data_dir, n_record=27, shuffle=False, w_length=w32, seed=422)
 
     data = {'x': x, 'y': y, 'x_val': x_val, 'y_val': y_val, 'x_test': x_test, 'y_test': y_test, 'scaler': scaler, 'zero_value': zero_value, 'fs': fs}
 
-    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w4_limited.pickle'])), 'wb')
+    file_data = open(os.path.normpath('/'.join([data_dir, 'data_prepared_w32_limited.pickle'])), 'wb')
     pickle.dump(data, file_data)
     file_data.close()
