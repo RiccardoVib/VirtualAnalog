@@ -17,11 +17,11 @@ import tensorflow as tf
 def retrive_info(architecture, model_dir, units, drop, w):
 
     data_ = '../Files'
-    file_data = open(os.path.normpath('/'.join([data_, 'data_never_seen_w1.pickle'])), 'rb')
-    #file_data = open(os.path.normpath('/'.join([data_, 'data_prepared_w1_test_samples.pickle'])), 'rb')
+    #file_data = open(os.path.normpath('/'.join([data_, 'data_never_seen_w1.pickle'])), 'rb')
+    file_data = open(os.path.normpath('/'.join([data_, 'data_prepared_w1_test_samples.pickle'])), 'rb')
     data = pickle.load(file_data)
-    x_test = data['x']
-    y_test = data['y']
+    x_test = data['x_test']
+    y_test = data['y_test']
     fs = 48000
     scaler = data['scaler']
 
@@ -129,12 +129,12 @@ def retrive_info(architecture, model_dir, units, drop, w):
         dec_units = [units[1]]
 
         model = load_model_lstm_enc_dec_v2(T=T, D=D, encoder_units=enc_units, decoder_units=dec_units, drop=drop, model_save_dir=data_dir)
-        #opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-        #model.compile(loss='mse', metrics=['mse'], optimizer=opt)
-        #test_loss = model.evaluate([x_test[:, :-1, :], x_test[:, -1, 0].reshape(x_test.shape[0], 1, 1)], y_test[:, -1], batch_size=128, verbose=0)
-        #print(test_loss)
+        opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+        model.compile(loss='mse', metrics=['mse'], optimizer=opt)
+        test_loss = model.evaluate([x_test[:, :-1, :], x_test[:, -1, 0].reshape(x_test.shape[0], 1, 1)], y_test[:, -1], batch_size=128, verbose=0)
+        print(test_loss)
 
-        inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=0, stop=x_test.shape[0], T=T, name='loop', generate=True)
+        #inferenceLSTM_enc_dec_v2(data_dir=data_dir, model=model, fs=fs, scaler=scaler, start=0, stop=x_test.shape[0], T=T, name='loop', generate=True)
 
         # all_results = []
         # for l in range(len(sig_name)):
@@ -176,12 +176,21 @@ if __name__ == '__main__':
     #32 = 0.0006786261801607907 - 0.00024300726363435388
     #64 = 0.0006903575267642736 - 0.00024684221716597676
     #128 = 0.0006736059440299869 - 0.00024371933250222355
-    retrive_info(architecture='lstm_enc_dec_v2', model_dir='LSTM_enc_dec_v2_mae', units=[64, 64], drop=0., w=16)
+    retrive_info(architecture='lstm_enc_dec_v2', model_dir='ED_16_128', units=[128, 128], drop=0., w=16)
+    #neurons - 16 input window
     #64 = 0.0012393008219078183 - 0.007002443540841341
     #32 = 0.0012400229461491108 -
     #16 = 0.001235383446328342
     #8 = 0.0012214540038257837
 
+    # neurons - 16 input window
+    #128 = 0.0006222434458322823 - 0.0004879722255282104
+    #64 = 0.0006207552505657077 - 0.00037137599429115653
+    #32 = 0.000622822786681354 - 0.00045280493213795125
+    #16 = 0.0006259511574171484 - 0.00020342932839412242
+    #8 = 0.025561731308698654 - 0.02106512151658535
+
+    #window len - 8 neurons
     #2 = 0.01217335369437933 - 0.021829675883054733
     #4 = 0.0021775169298052788 - 0.0062402840703725815
     #8 = 0.0012916452251374722 - 0.006694374606013298
