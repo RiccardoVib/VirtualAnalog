@@ -1,14 +1,12 @@
 import pickle
 import random
 import os
-import tensorflow as tf
 import numpy as np
 from Preprocess import my_scaler
 
 
 def get_data(data_dir, n_record, shuffle, w_length, seed=422):
     np.random.seed(seed)
-    tf.random.set_seed(seed)
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
 
