@@ -1,4 +1,5 @@
 import numpy as np
+from keras.layers import Attention
 from scipy.io import wavfile
 from scipy import signal
 from scipy import fft
@@ -442,6 +443,108 @@ def load_model_lstm_enc_dec_v2(T, D, encoder_units, decoder_units, drop, model_s
     else:
         raise ValueError('Something wrong!')
     return model
+
+def load_model_attention(T, D, encoder_units, decoder_units, drop, model_save_dir):
+    encoder_inputs = Input(shape=(T - 1, D), name='enc_input')
+    first_unit_encoder = encoder_units.pop(0)
+    if len(encoder_units) > 0:
+        last_unit_encoder = encoder_units.pop()
+        outputs = LSTM(first_unit_encoder, return_sequences=True, name='LSTM_En0')(encoder_inputs)
+        for i, unit in enumerate(encoder_units):
+            outputs = LSTM(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
+        encoder_stack, state_h, state_c = LSTM(last_unit_encoder, return_sequences=True, return_state=True,
+                                               name='LSTM_EnFin')(outputs)
+    else:
+        encoder_stack, state_h, state_c = LSTM(first_unit_encoder, return_sequences=True, return_state=True,
+                                               name='LSTM_En')(encoder_inputs)
+
+    encoder_states = [state_h, state_c]
+
+    decoder_inputs = Input(shape=(1, 1), name='dec_input')
+    first_unit_decoder = decoder_units.pop(0)
+    if len(decoder_units) > 0:
+        last_unit_decoder = decoder_units.pop()
+        outputs = LSTM(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)(decoder_inputs,
+                                                                                                 initial_state=encoder_states)
+        for i, unit in enumerate(decoder_units):
+            outputs = LSTM(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)(outputs)
+        decoder_stack = LSTM(last_unit_decoder, return_sequences=True, return_state=False, name='LSTM_DeFin',
+                             dropout=drop)(outputs)
+    else:
+        decoder_stack = LSTM(first_unit_decoder, return_sequences=True, return_state=False, name='LSTM_De',
+                             dropout=drop)(decoder_inputs, initial_state=encoder_states)
+
+    # attention = dot([decoder_stack, encoder_stack], axes=[2, 2])
+    # attention = Activation('softmax')(attention)
+    attention = Attention()([decoder_stack, encoder_stack])
+    # context = dot([attention, encoder_stack], axes=[2, 1])
+    context = Attention()([attention, encoder_stack])
+    decoder_combined_context = tf.keras.layers.Concatenate()([context, decoder_stack])
+    # decoder_combined_context = np.concatenate([context, decoder_stack])
+
+    if drop != 0.:
+        decoder_combined_context = tf.keras.layers.Dropout(drop, name='DropLayer')(decoder_combined_context)
+    decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(decoder_combined_context)
+
+    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+    ckpt_dir = os.path.normpath(os.path.join(model_save_dir, 'Checkpoints', 'best'))
+    latest = tf.train.latest_checkpoint(ckpt_dir)
+    if latest is not None:
+        print("Restored weights from {}".format(ckpt_dir))
+        model.load_weights(latest)
+    else:
+        raise ValueError('Something wrong!')
+    return model
+
+def load_model_v3(T, D, encoder_units, decoder_units, drop, model_save_dir):
+    encoder_inputs = Input(shape=(T-1,D), name='enc_input')
+
+    encoder_dnn = Dense(64, name='Dense_1')(encoder_inputs)
+    first_unit_encoder = encoder_units.pop(0)
+    if len(encoder_units) > 0:
+        last_unit_encoder = encoder_units.pop()
+        outputs = LSTM(first_unit_encoder, return_sequences=True, name='LSTM_En0')(encoder_dnn)
+        for i, unit in enumerate(encoder_units):
+            outputs = LSTM(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
+        outputs, state_h, state_c = LSTM(last_unit_encoder, return_state=True, name='LSTM_EnFin')(outputs)
+    else:
+        outputs, state_h, state_c = LSTM(first_unit_encoder, return_state=True, name='LSTM_En')(encoder_dnn)
+
+    encoder_states = [state_h, state_c]
+
+    decoder_inputs = Input(shape=(1, 1), name='dec_input')
+
+    decoder_dnn = Dense(64, name='Dense_2')(decoder_inputs)
+
+    first_unit_decoder = decoder_units.pop(0)
+    if len(decoder_units) > 0:
+        last_unit_decoder = decoder_units.pop()
+        outputs = LSTM(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)(decoder_dnn,
+                                                                                                 initial_state=encoder_states)
+        for i, unit in enumerate(decoder_units):
+            outputs = LSTM(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)(outputs)
+        outputs, _, _ = LSTM(last_unit_decoder, return_sequences=True, return_state=True, name='LSTM_DeFin',
+                             dropout=drop)(outputs)
+    else:
+        outputs, _, _ = LSTM(first_unit_decoder, return_sequences=True, return_state=True, name='LSTM_De',
+                             dropout=drop)(
+            decoder_dnn,
+            initial_state=encoder_states)
+    if drop != 0.:
+        outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
+    decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
+    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+    ckpt_dir = os.path.normpath(os.path.join(model_save_dir, 'Checkpoints', 'best'))
+    latest = tf.train.latest_checkpoint(ckpt_dir)
+    if latest is not None:
+        print("Restored weights from {}".format(ckpt_dir))
+        model.load_weights(latest)
+    else:
+        raise ValueError('Something wrong!')
+    return model
+
 #inference
 def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, name, generate, model, time, measuring=False):
 

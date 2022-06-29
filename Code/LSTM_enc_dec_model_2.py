@@ -7,7 +7,7 @@ import os
 import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from keras.layers import Activation, dot, Attention
+from keras.layers import Attention
 
 from TrainFunctionality import root_mean_squared_error
 from GetData2 import get_data
