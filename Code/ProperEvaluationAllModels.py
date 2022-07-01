@@ -11,7 +11,7 @@ from GetData_for_v2 import get_data
 import sklearn
 import audio_format
 import time
-from tensorflow.keras.layers import Input, Dense, LSTM
+from tensorflow.keras.layers import Input, Dense, LSTM, GRU
 from tensorflow.keras.models import Model
 import tensorflow as tf
 from InferenceLSTM import predict_sequence
@@ -544,6 +544,52 @@ def load_model_v3(T, D, encoder_units, decoder_units, drop, model_save_dir):
     else:
         raise ValueError('Something wrong!')
     return model
+
+def load_model_GRU(T, D, encoder_units, decoder_units, drop, model_save_dir):
+    encoder_inputs = Input(shape=(T-1,D), name='enc_input')
+
+    first_unit_encoder = encoder_units.pop(0)
+    if len(encoder_units) > 0:
+        last_unit_encoder = encoder_units.pop()
+        outputs = GRU(first_unit_encoder, return_sequences=True, name='LSTM_En0')(encoder_inputs)
+        for i, unit in enumerate(encoder_units):
+            outputs = GRU(unit, return_sequences=True, name='LSTM_En' + str(i + 1))(outputs)
+        outputs, state_h = GRU(last_unit_encoder, return_state=True, name='LSTM_EnFin')(outputs)
+    else:
+        outputs, state_h = GRU(first_unit_encoder, return_state=True, name='LSTM_En')(encoder_inputs)
+
+    encoder_states = [state_h]
+
+    decoder_inputs = Input(shape=(1, 1), name='dec_input')
+
+    first_unit_decoder = decoder_units.pop(0)
+    if len(decoder_units) > 0:
+        last_unit_decoder = decoder_units.pop()
+        outputs = GRU(first_unit_decoder, return_sequences=True, name='LSTM_De0', dropout=drop)(decoder_inputs,
+                                                                                                 initial_state=encoder_states)
+        for i, unit in enumerate(decoder_units):
+            outputs = GRU(unit, return_sequences=True, name='LSTM_De' + str(i + 1), dropout=drop)(outputs)
+        outputs, _ = GRU(last_unit_decoder, return_sequences=True, return_state=True, name='LSTM_DeFin',
+                             dropout=drop)(outputs)
+    else:
+        outputs, _ = GRU(first_unit_decoder, return_sequences=True, return_state=True, name='LSTM_De',
+                             dropout=drop)(
+            decoder_inputs,
+            initial_state=encoder_states)
+    if drop != 0.:
+        outputs = tf.keras.layers.Dropout(drop, name='DropLayer')(outputs)
+    decoder_outputs = Dense(1, activation='sigmoid', name='DenseLay')(outputs)
+    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+    ckpt_dir = os.path.normpath(os.path.join(model_save_dir, 'Checkpoints', 'best'))
+    latest = tf.train.latest_checkpoint(ckpt_dir)
+    if latest is not None:
+        print("Restored weights from {}".format(ckpt_dir))
+        model.load_weights(latest)
+    else:
+        raise ValueError('Something wrong!')
+    return model
+
 
 #inference
 def inferenceLSTM_enc_dec(data_dir, fs, x_test, y_test, scaler, start, stop, name, generate, model, time, measuring=False):
